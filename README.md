@@ -3,7 +3,6 @@
 A beautiful, fully featured Wordle clone that supports **English** and **Armenian (Հայերեն)** languages.
 
 Play it live: [https://iamnerses.github.io/Bardle/](https://iamnerses.github.io/Bardle/)  
-(Replace with your actual GitHub Pages URL or custom domain)
 
 ## Features
 
