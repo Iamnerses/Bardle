@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wordle – English & Հայերեն</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    :root {
+        --bg: #121213;
+        --text: #fff;
+        --tile-border: #3a3a3c;
+        --key-bg: #818384;
+        --key-hover: #9a9a9d;
+    }
+    body {
+        margin: 0;
+        padding: 20px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 700px;
+        gap: 30px; 
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        padding: 10px 0;
+        border-bottom: 2px solid #818384;
+    }
+
+    header button {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px; 
+        background: #2a2a2c;
+        color: white;
+        font-size: 1.8em; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    header button:hover {
+        background: #444;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 2.8em;
+    }
+
+    button, select {
+        padding: 10px 16px;
+        font-size: 1em;
+        border: none;
+        border-radius: 6px;
+        background: #333;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover { opacity: 0.9; }
+
+    #board {
+        display: grid;
+        grid-template-rows: repeat(6, 62px);
+        gap: 5px;
+        padding-top: 30px;
+        margin: 20px auto;
+        max-width: 350px;
+        width: 100%;
+        perspective: 1000px; 
+    }
+    .row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+    }
+    .tile {
+        border: 2px solid var(--tile-border);
+        font-size: 2em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        user-select: none;
+        -webkit-user-select: none;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s, border-color 0.6s, background 0.6s;
+    }
+    .tile.pop {
+        animation: pop 0.15s ease-in-out;
+    }
+    @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .tile.flipped {
+        transform: rotateX(180deg);
+    }
+
+    .tile .front, .tile .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 2px solid var(--tile-border);
+    }
+    .tile .back {
+        transform: rotateX(180deg);
+    }
+
+    .green .back { background:#538d4e; border-color:#538d4e; }
+    .yellow .back { background:#b59f3b; border-color:#b59f3b; }
+    .gray .back { background:#3a3a3c; border-color:#3a3a3c; }
+
+    .example-row {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin: 20px 0;
+    }
+
+    .example-tile {
+        width: 50px;
+        height: 50px;
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+
+    #keyboard {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .key-row {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin: 4px 0;
+    }
+    .key {
+        background: var(--key-bg);
+        padding: 14px 8px;
+        min-width: 25px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.2s;
+    }
+    .key:hover { background: var(--key-hover); }
+    .key.large { min-width: 65px; font-size: 0.9em; }
+    .key sup {
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 0.65em;
+        opacity: 0.9;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+    .modal-content {
+        background: #1e1e1e;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        border: 0.5px solid #444444; 
+    }
+    .modal-content select {
+        width: 100%;
+        padding: 12px;
+        margin: 15px 0;
+        font-size: 1.1em;
+    }
+    .close-btn {
+        background: #c93b3b;
+        padding: 10px 20px;
+        margin-left: 10px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-left: 15px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #3a3a3c;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #538d4e;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .slider.round {
+        border-radius: 34px;
+    }
+
+
+    @media (max-width: 500px) {
+        .tile { font-size: 1.7em; }
+        #board { grid-template-rows: repeat(6, 52px); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+        20%, 40%, 60%, 80% { transform: translateX(8px); }
+    }
+
+    .row.shake {
+        animation: shake 0.6s ease-in-out;
+    }
+
+    .message-popup {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 16px 32px;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: bold;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+        z-index: 200;
+    }
+
+    .message-popup.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    @media (max-width: 700px) {
+        header {
+            padding: 15px 20px;
+            gap: 15px;
+        }
+        .left-buttons, .right-buttons {
+            gap: 15px;
+        }
+        #game-title {
+            font-size: 2.4em;
+        }
+        .icon-btn {
+            width: 48px;
+            height: 48px;
+        }
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+</style>
+</head>
+<body>
+
+<header>
+    <button id="help-btn" class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="gray"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+    </button>
+    <button id="settings-btn" class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="gray"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.5-.47h-3.84a.49.49 0 0 0-.5.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.32.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.5.41h3.84c.26 0 .45-.17.5-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.1.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </button>
+    <h1 id="game-title" data-i18n="title">Wordle</h1>
+
+    <button id="custom-word-btn" class="icon-btn" aria-label="Create Custom Word">
+        <svg viewBox="0 0 24 24" fill="gray">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+    </button>
+    <button id="restart-btn" class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="gray"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+</header>
+
+<div id="message-popup" class="message-popup">
+    <span id="message-text"></span>
+</div>
+
+<div id="board"></div>
+<div id="keyboard"></div>
+
+
+<div class="modal" id="help-modal">
+    <div class="modal-content">
+        <h2 data-i18n="howToPlay" style="margin-top:0px">How to Play</h2>
+        <p data-i18n="guessTheWord">Guess the word in 6 tries.</p>
+        <p data-i18n="validWord">Each guess must be a valid 5-letter word. Press Enter to submit.</p>
+        <p data-i18n="colorsExplain">After each guess, the tile colors will show how close you were:</p>
+
+        <div class="example-row" id="example1"></div>
+        <p id="explanation-text-1"></p>
+
+        <div class="example-row" id="example2"></div>
+        <p id="explanation-text-2"></p>
+
+        <div class="example-row" id="example3"></div>
+        <p id="explanation-text-3"></p>
+
+        <p style="text-align:center; margin-top:30px;"><strong data-i18n="newWord">A new word every time you restart!</strong></p>
+
+        <div style="text-align:center; margin-top:30px;">
+            <button id="close-help" data-i18n="close">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="settings-modal">
+    <div class="modal-content">
+        <h2 data-i18n="settings" style="margin-top:0px;">Settings</h2>
+        <div style="display:flex; justify-content: space-between;align-items: center;">
+        <p data-i18n="chooseLanguage">Choose language:</p>
+        <select id="lang-select" style="max-width:40%">
+            <option value="en">English</option>
+            <option value="hy">Հայերեն (Armenian)</option>
+        </select>
+        </div>
+
+        <div style="margin: 25px 0; display: flex; align-items: center; justify-content: space-between;">
+            <span data-i18n="easyMode">Easy Mode (any word allowed)</span>
+            <label class="switch">
+                <input type="checkbox" id="easy-switch">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div style="margin: 25px 0; display: flex; align-items: center; justify-content: space-between;">
+            <span data-i18n="easyMode">Easy Mode (any word allowed)</span>
+            <label class="switch">
+                <input type="checkbox" id="hints-switch">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div style="margin-top:20px">
+            <button id="apply-settings" data-i18n="apply">Apply</button>
+            <button class="close-btn" id="cancel-settings" data-i18n="cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==== WORD LISTS ====
+    const words = {
+        en: ['ABOUT','APPLE','BEACH','CRANE','DREAM','EAGLE','FLAME','GRAPE','HOUSE','LEMON','MANGO','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TABLE','WATER','ZEBRA'],
+        hy: ['ՀԱՅԵՐ','ԳԻՇԵՐ','ԼՈՒՍԸ','ՀԱՅՐԸ','ՏԱՆԻՔ','ՔԱՎՈՐ','ԳՆԴԱԿ','ԲԱՐԻՔ']
+    };
+
+    // ==== KEYBOARD LAYOUTS ====
+    const layouts = {
+        en: [
+            ['Q','W','E','R','T','Y','U','I','O','P'],
+            ['A','S','D','F','G','H','J','K','L'],
+            ['ENTER','Z','X','C','V','B','N','M','DELETE']
+        ],
+        hy: [
+            ['Ա','Բ','Գ','Դ','Ե','Զ','Է','Ը','Թ','Ժ','Ի','Լ','Խ'],
+            ['Ծ','Կ','Հ','Ձ','Ղ','Ճ','Մ','Յ','Ն','Շ','Ո','Չ','Պ'],
+            ['ENTER','Ջ','Ռ','Ս','Վ','Տ','Ր','Ց','Ո','Ւ','DELETE'],
+            ['Փ','Ք','Օ','Ֆ']
+        ]
+    };
+
+    const translations = {
+        en: {
+            title: "Wordle",
+            settings: "Settings",
+            howToPlay: "How to Play",
+            guessTheWord: "Guess the word in 6 tries.",
+            validWord: "Each guess must be a valid 5-letter word. Press Enter to submit.",
+            colorsExplain: "After each guess, the tile colors will show how close you were:",
+            close: "Close",
+            chooseLanguage: "Choose language:",
+            easyMode: "Easy Mode (any word allowed)",
+            apply: "Apply",
+            cancel: "Cancel",
+            notInList: "Not in word list",
+            brilliant: "Brilliant!",
+            gameOver: "Game over! The word was",
+            exampleWords: ["WEARY", "PILLS", "VAGUE"],
+            exampleLetters: ["W", "I", "U"],
+            correctSpot: "is in the word and in the correct spot.",
+            wrongSpot: "is in the word but in the wrong spot.",
+            newWord: "A new word every time you restart!",
+            notInWord: "is not in the word.",
+            enterCustomWord: "Enter a 5-letter word for others to guess:",
+            customWordSet: "Custom word set!",
+            invalidWord: "Must be exactly 5 letters!"
+        },
+        hy: {
+            title: "Բառդլ",
+            settings: "Կարգավորումներ",
+            howToPlay: "Ինչպե՞ս խաղալ",
+            guessTheWord: "Գուշակիր բառը 6 փորձով։",
+            validWord: "Յուրաքանչյուր գուշակություն պետք է լինի վավեր 5-տառ բառ։ Սեղմիր Enter՝ ուղարկելու համար։",
+            colorsExplain: "Յուրաքանչյուր գուշակությունից հետո սալիկների գույները ցույց կտան, թե որքան մոտ ես։",
+            close: "Փակել",
+            chooseLanguage: "Ընտրիր լեզուն՝",
+            easyMode: "Հեշտ ռեժիմ (ցանկացած բառ ընդունելի է)",
+            apply: "Կիրառել",
+            cancel: "Չեղարկել",
+            notInList: "Չկա բառացանկում",
+            brilliant: "Հրաշալի!",
+            gameOver: "Ավարտվեց! Բառը՝",
+            exampleWords: ["ՃԱԿԱՏ", "ԿԻԹԱՌ", "ՈՒՂԻՂ"],
+            exampleLetters: ["Ճ", "Ի", "Ի"],
+            correctSpot: "տառը կա բառի մեջ եւ ճիշտ տեղում է",
+            wrongSpot: "տառը կա բառի մեջ, բայց սխալ տեղում է",
+            notInWord: "տառը բառի մեջ չկա",
+            newWord: "Նորից սկսելիս ամեն անգամ  նոր բառ!",
+            enterCustomWord: "Մուտքագրիր 5-տառ բառ, որ ուրիշները գուշակեն:",
+            customWordSet: "Պատվերով բառը սահմանվեց!",
+            invalidWord: "Պետք է լինի հենց 5 տառ!"
+        }
+    };
+
+    let lang = 'en';
+    let target = '';
+    let currentGuess = '';
+    let row = 0;
+    let previousLength = 0;
+    let gameOver = false;
+    let counts = {};
+    let easyMode = false;
+
+    function t(key) {
+        return translations[lang][key] || key;
+    }
+
+    function updateTexts() {
+        // Regular translations
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.textContent = t(el.dataset.i18n);
+        });
+
+        document.title = t('title') + ' – English & Հայերեն';
+    }
+
+    // ============================= GAME HELP ================================
+
+    // ========================================================================
+
+    function updateHelpExamples() {
+        const ex1 = document.getElementById('example1');
+        if (!ex1) return;
+
+        const words = translations[lang].exampleWords || ["WEARY", "PILLS", "VAGUE"];
+        const letters = translations[lang].exampleLetters || ["W", "I", "U"];
+
+        ex1.innerHTML = createExampleRow(words[0], 0);
+        document.getElementById('example2').innerHTML = createExampleRow(words[1], 1);
+        document.getElementById('example3').innerHTML = createExampleRow(words[2], 3);
+
+        const setExplanation = (num, letter, key) => {
+            const p = document.getElementById(`explanation-text-${num}`);
+            if (!p) return;
+            if (lang === 'en') {
+                p.innerHTML = `The letter <strong>${letter}</strong> ${t(key)}`;
+            } else {
+                p.innerHTML = `<strong>${letter}</strong> ${t(key)}`;
+            }
+            p.style.display = 'block';
+        };
+
+        setExplanation(1, letters[0], 'correctSpot');
+        setExplanation(2, letters[1], 'wrongSpot');
+        setExplanation(3, letters[2], 'notInWord');
+
+        // Trigger flip animation after DOM update
+        requestAnimationFrame(() => {
+            const highlightedTiles = document.querySelectorAll('#example1 .green, #example2 .yellow, #example3 .gray');
+            highlightedTiles.forEach((tile, index) => {
+                setTimeout(() => {
+                    tile.classList.add('flipped');
+                }, index * 250); 
+            });
+        });
+    }
+
+    function createExampleRow(word, highlightIndex) {
+        return word.split('').map((letter, i) => {
+            const isHighlighted = i === highlightIndex;
+            const colorClass = isHighlighted
+                ? (highlightIndex === 0 ? 'green' : highlightIndex === 1 ? 'yellow' : 'gray')
+                : '';
+
+            if (isHighlighted) {
+                return `
+                <div class="tile example-tile ${colorClass}">
+                    <div class="front"></div>
+                    <div class="back" style="color:white; font-weight:bold;">${letter}</div>
+                </div>
+            `;
+            } else {
+                return `
+                <div class="tile example-tile">
+                    <div class="front">${letter}</div>
+                    <div class="back"></div>
+                </div>
+            `;
+            }
+        }).join('');
+    }
+
+
+    // ============================== CORE UI =================================
+
+    // ========================================================================
+
+    function getKeyElement(letter) {
+        return Array.from(document.querySelectorAll('.key')).find(el =>
+            el.textContent.trim() === letter || el.textContent.startsWith(letter)
+        );
+    }
+
+    function showMessage(text) {
+        const popup = document.getElementById('message-popup');
+        const textEl = document.getElementById('message-text');
+        textEl.textContent = text;
+        popup.classList.add('show');
+
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 2000);
+    }
+
+    function buildBoard() {
+        const board = document.getElementById('board');
+        board.innerHTML = ''; 
+
+        for (let i = 0; i < 6; i++) {
+            const r = document.createElement('div');
+            r.className = 'row';
+            for (let j = 0; j < 5; j++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerHTML = `
+                <div class="front"></div>
+                <div class="back"></div>
+            `;
+                tile.dataset.row = i;
+                tile.dataset.col = j;
+                r.appendChild(tile);
+            }
+            board.appendChild(r);
+        }
+    }
+    function buildKeyboard() {
+        const kb = document.getElementById('keyboard');
+        kb.innerHTML = '';
+        layouts[lang].forEach(row => {
+            const keyRow = document.createElement('div');
+            keyRow.className = 'key-row';
+            row.forEach(k => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                if (k === 'ENTER' || k === 'DELETE') key.classList.add('large');
+                key.textContent = k === 'DELETE' ? 'Delete' : k;
+                if (k !== 'ENTER' && k !== 'DELETE') {
+                    const sup = document.createElement('sup');
+                    sup.id = `sup-${k}`;
+                    key.appendChild(sup);
+                }
+                key.onclick = () => handleKey(k);
+                keyRow.appendChild(key);
+            });
+            kb.appendChild(keyRow);
+        });
+    }
+
+    function updateRow() {
+        const currentLength = currentGuess.length;
+
+        for (let i = 0; i < 5; i++) {
+            const tile = document.querySelectorAll('.row')[row].children[i];
+            const front = tile.querySelector('.front');
+            const letter = currentGuess[i] || '';
+
+            front.textContent = letter;
+            tile.classList.remove('pop');
+            void tile.offsetWidth;
+
+            if (i === currentLength - 1 && letter) {
+                tile.classList.add('pop');
+            } else if (i === currentLength && previousLength > currentLength) {
+                if (i === previousLength - 1) {
+                    tile.classList.add('pop');
+                }
+            }
+        }
+        previousLength = currentLength;
+    }
+    function handleKey(k) {
+        if (gameOver) return;
+        if (k === 'ENTER') {
+            if (currentGuess.length === 5) submit();
+        } else if (k === 'DELETE') {
+            currentGuess = currentGuess.slice(0, -1);
+            updateRow();
+        } else if (currentGuess.length < 5) {
+            const allowed = layouts[lang].flat().filter(x => x.length === 1);
+            if (allowed.includes(k)) {
+                currentGuess += k;
+                updateRow();
+            }
+        }
+    }
+
+    // TODO understand this function 
+    // Fix first letter not flipping its beacuse enter is pressed before animation ends 
+    // Fix animation to affect only last letter
+    // Fix layout colorings so that after tunring green it cannot be changed
+    // Fix if enter is presed while previous was flipping it skips a row
+    // Add hint functionality
+    function submit() {
+        if (!easyMode) {
+            if (!words[lang].includes(currentGuess)) {
+                const currentRowEl = document.querySelectorAll('.row')[row];
+                currentRowEl.classList.add('shake');
+
+                setTimeout(() => {
+                    currentRowEl.classList.remove('shake');
+                }, 600);
+
+                showMessage(t('notInList'));
+                return;
+            }
+        }
+
+        console.log("submit");
+
+        const countInTarget = {};
+        for (let c of target) countInTarget[c] = (countInTarget[c] || 0) + 1;
+
+        // Update revealed counts
+        for (let c of currentGuess) {
+            if (target.includes(c)) {
+                const real = target.split('').filter(x => x === c).length;
+                counts[c] = Math.max(counts[c] || 0, real);
+            }
+        }
+        updateSuperscripts();
+
+        // Flip animation + coloring
+        const tiles = Array.from(document.querySelectorAll('.row')[row].children);
+        tiles.forEach((tile, i) => {
+            const letter = currentGuess[i];
+            const keyEl = getKeyElement(letter);
+
+            // Colors the layout 
+            setTimeout(() => {
+                tile.classList.add('flipped');
+
+                let colorClass = 'gray';
+                if (letter === target[i]) {
+                    colorClass = 'green';
+                    if (keyEl) keyEl.style.background = '#538d4e';
+                    countInTarget[letter]--;
+                } else if (target.includes(letter) && countInTarget[letter]-- > 0) {
+                    colorClass = 'yellow';
+                    if (keyEl && keyEl.style.background !== '#538d4e') keyEl.style.background = '#b59f3b';
+                } else {
+                    if (keyEl && !['#538d4e', '#b59f3b'].includes(keyEl.style.background)) {
+                        keyEl.style.background = '#3a3a3c';
+                    }
+                }
+
+                tile.classList.add(colorClass);
+                tile.querySelector('.back').textContent = letter;
+            }, i * 300);
+        });
+
+        setTimeout(() => {
+            if (currentGuess === target) {
+                showMessage(t('brilliant'))
+                gameOver = true;
+            } else {
+                row++;
+                currentGuess = '';
+                if (row === 6) {
+                    showMessage(`${t('gameOver')} ${target}`)
+                    gameOver = true;
+                }
+            }
+        }, 5 * 150 + 300);
+    }
+
+    function updateSuperscripts() {
+        Object.keys(counts).forEach(l => {
+            const sup = document.getElementById(`sup-${l}`);
+            if (sup) sup.textContent = counts[l] > 1 ? counts[l] : '';
+        });
+    }
+
+    function newGame() {
+        console.log("New game, word changed!!");
+        target = words[lang][Math.floor(Math.random() * words[lang].length)];
+        currentGuess = '';
+        row = 0;
+        gameOver = false;
+        counts = {};
+        updateTexts();
+        buildBoard();
+        buildKeyboard();
+        updateRow(); // clear current
+    }
+
+    // Physical keyboard
+    document.addEventListener('keydown', e => {
+        if (gameOver) return;
+        const k = e.key.toUpperCase();
+        if (k === 'ENTER') handleKey('ENTER');
+        else if (k === 'BACKSPACE') handleKey('DELETE');
+        else if (k.length === 1 && /[A-ZԱ-Ֆ]/.test(k)) {
+            const allowed = layouts[lang].flat().filter(x => x.length === 1);
+            if (allowed.includes(k)) handleKey(k);
+        }
+    });
+
+    const helpModal = document.getElementById('help-modal');
+
+    document.getElementById('help-btn').onclick = () => {
+        helpModal.style.display = 'flex';
+        updateHelpExamples();  
+        updateTexts();
+    };
+
+    document.getElementById('close-help').onclick = () => {
+        helpModal.style.display = 'none';
+    };
+
+    helpModal.onclick = (e) => {
+        if (e.target === helpModal) {
+            helpModal.style.display = 'none';
+        }
+    };
+
+    // Settings modal
+    const modal = document.getElementById('settings-modal');
+    const select = document.getElementById('lang-select');
+    const easySwitch = document.getElementById('easy-switch');
+
+    document.getElementById('settings-btn').onclick = () => {
+        select.value = lang;
+        easySwitch.checked = easyMode;
+        console.log("MODE", easyMode);
+        modal.style.display = 'flex';
+        select.focus();
+    };
+
+    document.getElementById('apply-settings').onclick = () => {
+        lang = select.value;
+        easyMode = easySwitch.checked;
+        console.log("MODE", easyMode);
+        modal.style.display = 'none';
+        newGame();
+    };
+
+    document.getElementById('cancel-settings').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+
+    document.getElementById('custom-word-btn').onclick = () => {
+        const custom = prompt(t('enterCustomWord') || 'Enter a 5-letter word for others to guess:');
+        if (custom && custom.length === 5 && /^[A-ZԱ-Ֆ]+$/i.test(custom)) {
+            target = custom.toUpperCase();
+            row = 0;
+            currentGuess = '';
+            gameOver = false;
+            counts = {};
+            buildBoard();
+            updateRow();
+            showMessage(t('customWordSet') || 'Custom word set! Share this game.');
+            // Later: you can add location.hash = btoa(target) for sharing
+        } else if (custom) {
+            showMessage(t('invalidWord') || 'Must be exactly 5 letters!');
+        }
+    };
+
+    // Restart
+    document.getElementById('restart-btn').onclick = newGame;
+
+    // Remove focus from buttons
+    document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
+
+    // Start game
+    newGame();
+</script>
+</body>
+</html>
