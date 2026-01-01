@@ -4,14 +4,57 @@
 <meta charset="UTF-8">
 <title>Wordle – English & Հայերեն</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 <style>
     :root {
-        --bg: #121213;
+        --bg: #1a1a1c;
         --text: #fff;
+        --tile-text-color:#fff;
+        --tile-text-color-before:#fff;
+        --tile-border-active: #555;
         --tile-border: #3a3a3c;
         --key-bg: #818384;
+
         --key-hover: #9a9a9d;
+        --green:#538d4e ;
+        --yellow:#b59f3b ;
+        --gray: #3a3a3c;
+        --greenbtn: #659e6e;
+        --btnHover: #5e5e5e;
+        --modal-bg: #333;
+        --red: #c93b3b;
+
+        --tile-size: 62px;
+        --tile-gap: 8px;
+    } 
+
+    body.light {
+        --bg: #ffffff;
+        --text: #464646;
+        --tile-text-color:#fff;
+        --tile-text-color-before:#534d4d;
+        --tile-border-active: #999;
+        --tile-border: #d3d6da;
+        --key-bg: #d3d6da;
+
+        --key-hover: #c0c0c0;
+        --green:#79b851;
+        --yellow:#f3c237;
+        --gray: #9b9ea4;
+        --greenbtn: #57ac57;
+        --btnHover: #e6f3e6;
+        --modal-bg: #aaa;
+        --red:#e93b3b;
     }
+
+
+    body.high-contrast {
+        --green:#f55a00 ;
+        --yellow:#323dd1 ;
+        --gray: #3a3a3c;
+        --red:#323dd1;
+    }
+
     body {
         margin: 0;
         padding: 20px;
@@ -23,6 +66,17 @@
         display: flex;
         flex-direction: column;
     }
+
+    body.light .modal-content {
+        background: #f0f0f0;
+        color: #000;
+        border-color: #ccc;
+    }
+
+    body.light .icon-btn {
+        background: #eee;
+    }
+
     header {
         display: flex;
         justify-content: center;
@@ -41,18 +95,20 @@
         width: 50px;
         height: 50px;
         border-radius: 10px; 
-        background: #2a2a2c;
-        color: white;
-        font-size: 1.8em; 
-        display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.8s ease;
     }
 
-    header button:hover {
-        background: #444;
+    .icon-btn:hover {
+        background: var(--btnHover) !important;
+        transition: all 0.5s ease;
+    }
+
+    header button:hover svg{
+        fill:var(--greenbtn);
+        transition: all 0.5s ease;
     }
 
     h1 {
@@ -65,7 +121,7 @@
         font-size: 1em;
         border: none;
         border-radius: 6px;
-        background: #333;
+        background: var(--modal-bg);
         color: white;
         cursor: pointer;
     }
@@ -73,21 +129,31 @@
 
     #board {
         display: grid;
-        grid-template-rows: repeat(6, 62px);
-        gap: 5px;
+        grid-template-rows: repeat(6, var(--tile-size));
+        width: fit-content;
+        gap: var(--tile-gap);
+        max-width: 90%;
         padding-top: 30px;
-        margin: 20px auto;
-        max-width: 350px;
-        width: 100%;
+        margin: 0 auto;
         perspective: 1000px; 
     }
+    
+    body.light .modal-content {
+        background: #f0f0f0;
+        color: #000;
+        border-color: #ccc;
+    }
+
     .row {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 5px;
+        grid-auto-flow: column;
+        grid-auto-columns: var(--tile-size);
+        gap: var(--tile-gap);
     }
+
     .tile {
-        border: 2px solid var(--tile-border);
+        width: var(--tile-size);
+        height: var(--tile-size);
         font-size: 2em;
         font-weight: bold;
         display: flex;
@@ -114,23 +180,34 @@
     }
 
     .tile .front, .tile .back {
+        border: 2px solid var(--tile-border);
+        border-radius: 6px;
         position: absolute;
         width: 100%;
         height: 100%;
+        color:var(--tile-text-color-before);
         backface-visibility: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
-        border: 2px solid var(--tile-border);
     }
+
+    .tile .front.tileActive {
+        border: 2px solid var(--tile-border-active);
+    }
+
     .tile .back {
+        color:var(--tile-text-color);
         transform: rotateX(180deg);
     }
 
-    .green .back { background:#538d4e; border-color:#538d4e; }
-    .yellow .back { background:#b59f3b; border-color:#b59f3b; }
-    .gray .back { background:#3a3a3c; border-color:#3a3a3c; }
+    .green .back { background:var(--green); border-color:var(--green); }
+    .yellow .back { background:var(--yellow); border-color:var(--yellow); }
+    .gray .back#323dd1 { background:var(--gray); border-color:var(--gray); }
+
+    .key.green{ background:var(--green) ;}
+    .key.yellow{ background:var(--yellow) ;}
+    .key.gray{ background:var(--gray) ;}
 
     .example-row {
         display: flex;
@@ -160,15 +237,35 @@
     }
     .key {
         background: var(--key-bg);
+        color:var(--tile-text-color-before);
         padding: 14px 8px;
         min-width: 25px;
         border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
         position: relative;
-        transition: background 0.2s;
+        transition: background 0.6s, color 0.6s;
     }
-    .key:hover { background: var(--key-hover); }
+    
+    .keyGreen {
+        color:var(--tile-text-color) !important;
+        background: var(--green) !important;
+    }
+
+    .keyYellow {
+        color:var(--tile-text-color) !important;
+        background: var(--yellow) !important;
+    }
+
+    .keyGray {
+        color:var(--tile-text-color) !important;
+        background: var(--gray) !important;
+    }
+
+    .key:hover { 
+        background: var(--btnHover); 
+        color: var(--greenbtn)
+    }
     .key.large { min-width: 65px; font-size: 0.9em; }
     .key sup {
         position: absolute;
@@ -204,9 +301,11 @@
         font-size: 1.1em;
     }
     .close-btn {
-        background: #c93b3b;
-        padding: 10px 20px;
-        margin-left: 10px;
+        background: var(--red);
+    }
+
+    .apply-btn {
+        background: var(--green);
     }
 
     .switch {
@@ -227,7 +326,8 @@
         position: absolute;
         cursor: pointer;
         top: 0; left: 0; right: 0; bottom: 0;
-        background-color: #3a3a3c;
+        background-color: var(--modal-bg);
+        min-width:60px;
         transition: .4s;
         border-radius: 34px;
     }
@@ -245,7 +345,11 @@
     }
 
     input:checked + .slider {
-        background-color: #538d4e;
+        background-color: var(--green);
+    }
+
+    icon-btn:hover svg{
+        fill: #53825a;
     }
 
     input:checked + .slider:before {
@@ -258,8 +362,17 @@
 
 
     @media (max-width: 500px) {
-        .tile { font-size: 1.7em; }
-        #board { grid-template-rows: repeat(6, 52px); }
+        .tile { 
+            font-size: 1.7em;
+        }
+        .row {grid-template-columns: repeat(5, 52px); }
+        .key {
+            min-width: 10px
+        }
+
+        :root {
+            --tile-size: 52px;
+        }
     }
 
     @keyframes shake {
@@ -303,6 +416,40 @@
         border-radius: 10px;
         transition: all 0.3s ease;
     }
+    .length-square {
+        width: 50px;
+        height: 50px;
+        background: var(--modal-bg);
+        color: white;
+        font-size: 1.4em;
+        font-weight: bold;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid var(--tile-border-active);
+    }
+
+    .length-square:hover {
+        transform: scale(1.1);
+    }
+
+    .length-square.selected {
+        background: var(--green);
+        border-color: var(--green);
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(83, 141, 78, 0.6);
+    }
+
+    .settingsItem {
+        margin: 25px 0;
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+        text-align:left;
+    }
 
     @media (max-width: 700px) {
         header {
@@ -322,6 +469,14 @@
         .icon-btn svg {
             width: 24px;
             height: 24px;
+        }
+
+    }
+
+    @media (max-width: 360px) {
+        #board {
+            transform: scale(0.9);
+            transform-origin: top center;
         }
     }
 
@@ -391,35 +546,53 @@
         </select>
         </div>
 
-        <div style="margin: 25px 0; display: flex; align-items: center; justify-content: space-between;">
-            <span data-i18n="easyMode">Easy Mode (any word allowed)</span>
+        <div style="margin: 25px 0; text-align: center;">
+            <p data-i18n="wordLength">Word Length:</p>
+            <div id="length-selector" style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+            </div>
+        </div>
+
+        <div class="settingsItem" style="margin-top: 35px;">
+            <span data-i18n="easyMode" style="max-width:80%;"></span>
             <label class="switch">
                 <input type="checkbox" id="easy-switch">
                 <span class="slider round"></span>
             </label>
         </div>
 
-        <div style="margin: 25px 0; display: flex; align-items: center; justify-content: space-between;">
-            <span data-i18n="easyMode">Easy Mode (any word allowed)</span>
+        <div class="settingsItem">
+            <span data-i18n="settingsHint" style="max-width:80%;"></span>
             <label class="switch">
                 <input type="checkbox" id="hints-switch">
                 <span class="slider round"></span>
             </label>
         </div>
 
+        <div class="settingsItem">
+            <span data-i18n="lightmode" style="max-width:80%;"></span>
+        
+            <label class="switch">
+                <input type="checkbox" id="light-switch">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div class="settingsItem">
+            <span data-i18n="highcontrast" style="max-width:80%;"></span>
+            <label class="switch">
+                <input type="checkbox" id="highcontrast-switch">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
         <div style="margin-top:20px">
-            <button id="apply-settings" data-i18n="apply">Apply</button>
+            <button class="apply-btn" id="apply-settings" data-i18n="apply">Apply</button>
             <button class="close-btn" id="cancel-settings" data-i18n="cancel">Cancel</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ==== WORD LISTS ====
-    const words = {
-        en: ['ABOUT','APPLE','BEACH','CRANE','DREAM','EAGLE','FLAME','GRAPE','HOUSE','LEMON','MANGO','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TABLE','WATER','ZEBRA'],
-        hy: ['ՀԱՅԵՐ','ԳԻՇԵՐ','ԼՈՒՍԸ','ՀԱՅՐԸ','ՏԱՆԻՔ','ՔԱՎՈՐ','ԳՆԴԱԿ','ԲԱՐԻՔ']
-    };
 
     // ==== KEYBOARD LAYOUTS ====
     const layouts = {
@@ -460,7 +633,11 @@
             notInWord: "is not in the word.",
             enterCustomWord: "Enter a 5-letter word for others to guess:",
             customWordSet: "Custom word set!",
-            invalidWord: "Must be exactly 5 letters!"
+            invalidWord: "Must be exactly 5 letters!",
+            settingsHint: "Show letter hints, if letter repeats",
+            highcontrast: "Enable color blind (high contrast) mode",
+            wordLength: "Number of letters",
+            lightmode: "Enable light mode"
         },
         hy: {
             title: "Բառդլ",
@@ -485,18 +662,41 @@
             newWord: "Նորից սկսելիս ամեն անգամ  նոր բառ!",
             enterCustomWord: "Մուտքագրիր 5-տառ բառ, որ ուրիշները գուշակեն:",
             customWordSet: "Պատվերով բառը սահմանվեց!",
-            invalidWord: "Պետք է լինի հենց 5 տառ!"
+            invalidWord: "Պետք է լինի հենց 5 տառ!",
+            settingsHint: "Ցուցադրել հուշում, եթե տվյալ տառը կրկնվում է",
+            highcontrast: "Միացնել գունակույր եղանակը",
+            wordLength: "Տառերի քանակ",
+            lightmode: "Լուսավոր գունային եղանակ"
         }
     };
 
     let lang = 'en';
     let target = '';
+    let targetLetterCount = 5;
     let currentGuess = '';
     let row = 0;
     let previousLength = 0;
     let gameOver = false;
     let counts = {};
     let easyMode = false;
+    let letterHintsOn = false;
+    let isAnimating = false;
+    let keyboardState = {};
+
+    let lightTheme = false;
+    let highContrast = false;
+
+    let words = {}    // Allowed guess lists
+    let answers = []  // Answers array
+
+    lightTheme = localStorage.getItem('lightTheme') === 'true';
+    highContrast = localStorage.getItem('highContrast') === 'true';
+    easyMode = localStorage.getItem('easyMode') === 'true' || false;
+    lang = localStorage.getItem('lang') || 'en';
+    letterHintsOn = localStorage.getItem('letterHintsOn') === 'true';
+
+    document.body.classList.toggle('light', lightTheme);
+    document.body.classList.toggle('high-contrast', highContrast);
 
     function t(key) {
         return translations[lang][key] || key;
@@ -511,71 +711,80 @@
         document.title = t('title') + ' – English & Հայերեն';
     }
 
-function updateHelpExamples() {
-    const ex1 = document.getElementById('example1');
-    if (!ex1) return;
+    // ============================= GAME HELP ================================
 
-    const words = translations[lang].exampleWords || ["WEARY", "PILLS", "VAGUE"];
-    const letters = translations[lang].exampleLetters || ["W", "I", "U"];
+    // ========================================================================
 
-    // Rebuild rows with highlighted tiles NOT flipped yet
-    ex1.innerHTML = createExampleRow(words[0], 0);
-    document.getElementById('example2').innerHTML = createExampleRow(words[1], 1);
-    document.getElementById('example3').innerHTML = createExampleRow(words[2], 3);
+    function updateHelpExamples() {
+        const ex1 = document.getElementById('example1');
+        if (!ex1) return;
 
-    // Update explanation texts
-    const setExplanation = (num, letter, key) => {
-        const p = document.getElementById(`explanation-text-${num}`);
-        if (!p) return;
-        if (lang === 'en') {
-            p.innerHTML = `The letter <strong>${letter}</strong> ${t(key)}`;
-        } else {
-            p.innerHTML = `<strong>${letter}</strong> ${t(key)}`;
-        }
-        p.style.display = 'block';
-    };
+        const words = translations[lang].exampleWords || ["WEARY", "PILLS", "VAGUE"];
+        const letters = translations[lang].exampleLetters || ["W", "I", "U"];
 
-    setExplanation(1, letters[0], 'correctSpot');
-    setExplanation(2, letters[1], 'wrongSpot');
-    setExplanation(3, letters[2], 'notInWord');
+        ex1.innerHTML = createExampleRow(words[0], 0);
+        document.getElementById('example2').innerHTML = createExampleRow(words[1], 1);
+        document.getElementById('example3').innerHTML = createExampleRow(words[2], 3);
 
-    // Trigger flip animation after DOM update
-    requestAnimationFrame(() => {
-        const highlightedTiles = document.querySelectorAll('#example1 .green, #example2 .yellow, #example3 .gray');
-        highlightedTiles.forEach((tile, index) => {
-            setTimeout(() => {
-                tile.classList.add('flipped');
-            }, index * 250); 
+        const setExplanation = (num, letter, key) => {
+            const p = document.getElementById(`explanation-text-${num}`);
+            if (!p) return;
+            if (lang === 'en') {
+                p.innerHTML = `The letter <strong>${letter}</strong> ${t(key)}`;
+            } else {
+                p.innerHTML = `<strong>${letter}</strong> ${t(key)}`;
+            }
+            p.style.display = 'block';
+        };
+
+        setExplanation(1, letters[0], 'correctSpot');
+        setExplanation(2, letters[1], 'wrongSpot');
+        setExplanation(3, letters[2], 'notInWord');
+
+        // Trigger flip animation after DOM update
+        requestAnimationFrame(() => {
+            const highlightedTiles = document.querySelectorAll('#example1 .green, #example2 .yellow, #example3 .gray');
+            highlightedTiles.forEach((tile, index) => {
+                setTimeout(() => {
+                    tile.classList.add('flipped');
+                }, index * 250); 
+            });
         });
-    });
-}
-function createExampleRow(word, highlightIndex) {
-    return word.split('').map((letter, i) => {
-        const isHighlighted = i === highlightIndex;
-        const colorClass = isHighlighted
-            ? (highlightIndex === 0 ? 'green' : highlightIndex === 1 ? 'yellow' : 'gray')
-            : '';
+    }
 
-        if (isHighlighted) {
-            return `
+    function createExampleRow(word, highlightIndex) {
+        return word.split('').map((letter, i) => {
+            const isHighlighted = i === highlightIndex;
+            const colorClass = isHighlighted
+                ? (highlightIndex === 0 ? 'green' : highlightIndex === 1 ? 'yellow' : 'gray')
+                : '';
+
+            if (isHighlighted) {
+                return `
                 <div class="tile example-tile ${colorClass}">
                     <div class="front"></div>
                     <div class="back" style="color:white; font-weight:bold;">${letter}</div>
                 </div>
             `;
-        } else {
-            return `
+            } else {
+                return `
                 <div class="tile example-tile">
                     <div class="front">${letter}</div>
                     <div class="back"></div>
                 </div>
             `;
-        }
-    }).join('');
-}
+            }
+        }).join('');
+    }
+
+
+    // ============================== CORE UI =================================
+
+    // ========================================================================
+
     function getKeyElement(letter) {
         return Array.from(document.querySelectorAll('.key')).find(el =>
-            el.textContent.trim() === letter || el.textContent.startsWith(letter)
+            el.textContent.trim().toLowerCase() === letter.toLowerCase() || el.textContent.startsWith(letter)
         );
     }
 
@@ -597,7 +806,7 @@ function createExampleRow(word, highlightIndex) {
         for (let i = 0; i < 6; i++) {
             const r = document.createElement('div');
             r.className = 'row';
-            for (let j = 0; j < 5; j++) {
+            for (let j = 0; j < targetLetterCount; j++) {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
                 tile.innerHTML = `
@@ -624,46 +833,55 @@ function createExampleRow(word, highlightIndex) {
                 key.textContent = k === 'DELETE' ? 'Delete' : k;
                 if (k !== 'ENTER' && k !== 'DELETE') {
                     const sup = document.createElement('sup');
-                    sup.id = `sup-${k}`;
+                    sup.id = `sup-${k.toLowerCase()}`;
                     key.appendChild(sup);
                 }
-                key.onclick = () => handleKey(k);
+                key.onclick = () => {
+                    if (!isAnimating && !gameOver) handleKey(k);
+                };
                 keyRow.appendChild(key);
             });
             kb.appendChild(keyRow);
         });
     }
 
-    function updateRow() {
+    function updateRow(isDeleted = false) {
         const currentLength = currentGuess.length;
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < targetLetterCount; i++) {
             const tile = document.querySelectorAll('.row')[row].children[i];
             const front = tile.querySelector('.front');
             const letter = currentGuess[i] || '';
 
             front.textContent = letter;
-            tile.classList.remove('pop');
+            tile.classList.remove('pop', 'tileActive');
             void tile.offsetWidth;
 
-            if (i === currentLength - 1 && letter) {
+            if (i === currentLength - 1 && letter && !isDeleted) {
                 tile.classList.add('pop');
             } else if (i === currentLength && previousLength > currentLength) {
                 if (i === previousLength - 1) {
                     tile.classList.add('pop');
+                    front.classList.remove('tileActive');
                 }
+            }
+
+            if (letter) {
+                front.classList.add('tileActive');
             }
         }
         previousLength = currentLength;
     }
+
     function handleKey(k) {
-        if (gameOver) return;
+        if (gameOver || isAnimating) return;
+
         if (k === 'ENTER') {
-            if (currentGuess.length === 5) submit();
+            if (currentGuess.length === targetLetterCount) submit();
         } else if (k === 'DELETE') {
             currentGuess = currentGuess.slice(0, -1);
-            updateRow();
-        } else if (currentGuess.length < 5) {
+            updateRow(true);
+        } else if (currentGuess.length < targetLetterCount) {
             const allowed = layouts[lang].flat().filter(x => x.length === 1);
             if (allowed.includes(k)) {
                 currentGuess += k;
@@ -672,20 +890,111 @@ function createExampleRow(word, highlightIndex) {
         }
     }
 
+
+    function animateGuess(result, kbState) {
+        const tiles = Array.from(document.querySelectorAll('.row')[row].children);
+        tiles.forEach((tile, i) => {
+            let letter = currentGuess[i];
+            isAnimating = true;
+
+            setTimeout(() => {
+                tile.classList.add('flipped');
+
+                let colorClass = 'gray';
+                if (result[i] == "GREEN") {
+                    colorClass = 'green';
+                } else if (result[i] == "YELLOW") {
+                    colorClass = 'yellow';
+                }
+
+                tile.classList.add(colorClass);
+                tile.querySelector('.back').textContent = letter;
+            }, i * 300);
+        });
+
+        setTimeout(() => {
+            updateKeyboard(kbState);
+        }, 1200);
+    }
+
+    function updateKeyboard(state) {
+        for (let i=0; i < currentGuess.length; i++) {
+            let letter = currentGuess[i];
+            const keyEl = getKeyElement(letter);
+
+            keyEl.classList.remove('keyYellow', 'keyGray');
+
+            if (state[letter] === "GREEN") {
+                keyEl.classList.add("keyGreen");
+
+            } else if (state[letter] === "YELLOW") {
+                keyEl.classList.add("keyYellow");
+
+            } else {
+                keyEl.classList.add("keyGray");
+
+            }
+        }
+    }
+
+    function updateSuperscripts(counts) {
+        Object.keys(counts).forEach(l => {
+            const sup = document.getElementById(`sup-${l}`);
+            if (sup) sup.textContent = counts[l];
+        });
+    }
+
+    function buildLengthSelector() {
+        const container = document.getElementById('length-selector');
+        container.innerHTML = '';
+
+        for (let len = 4; len <= 10; len++) {
+            const square = document.createElement('div');
+            square.textContent = len;
+            square.className = 'length-square';
+            if (len === targetLetterCount) {
+                square.classList.add('selected');
+            }
+            square.onclick = () => {
+                targetLetterCount = len;
+                document.querySelectorAll('.length-square').forEach(s => s.classList.remove('selected'));
+                square.classList.add('selected');
+                getWordList(targetLetterCount).then(() => { newGame()});
+            };
+            container.appendChild(square);
+        }
+    }
+
+    // =========================== Game Logic ===============================
+
+    function frequencyMap(word) {
+        let result = {};
+        for (c of word) {
+            if (result[c]) { 
+                result[c] = result[c] + 1 
+            } else { result[c] = 1}
+        }
+        return result;
+    }
+
     // TODO understand this function 
-    // Fix first letter not flipping its beacuse enter is pressed before animation ends 
-    // Fix animation to affect only last letter
     // Fix layout colorings so that after tunring green it cannot be changed
-    // Fix if enter is presed while previous was flipping it skips a row
     // Add hint functionality
+    // Separate UI flow from the backend
     function submit() {
+        currentGuess = currentGuess.toLowerCase();
+        target = target.toLowerCase();
         if (!easyMode) {
             if (!words[lang].includes(currentGuess)) {
+                // TODO transfer following to separate UI function
                 const currentRowEl = document.querySelectorAll('.row')[row];
                 currentRowEl.classList.add('shake');
 
+                isAnimating = true;
+
                 setTimeout(() => {
                     currentRowEl.classList.remove('shake');
+                    isAnimating = false;
                 }, 600);
 
                 showMessage(t('notInList'));
@@ -693,48 +1002,102 @@ function createExampleRow(word, highlightIndex) {
             }
         }
 
-        console.log("submit");
 
-        const countInTarget = {};
-        for (let c of target) countInTarget[c] = (countInTarget[c] || 0) + 1;
+        let result = []
+        for (let i = 0; i < targetLetterCount; i++) {
+            result.push(null);
+        }
 
-        // Update revealed counts
-        for (let c of currentGuess) {
-            if (target.includes(c)) {
-                const real = target.split('').filter(x => x === c).length;
-                counts[c] = Math.max(counts[c] || 0, real);
+        let bagTarget = frequencyMap(target);
+        let bagGuess  = frequencyMap(currentGuess);
+
+        if (letterHintsOn) {
+            let repeated = {};
+            for (let i=0; i < targetLetterCount; i++) {
+                let letter = target[i];
+                let nTarget = bagTarget[letter];
+                if (nTarget > 1 && bagGuess[letter] < nTarget) {
+                    repeated[letter] = nTarget;
+                }
+                //TODO why this causes the keyEl to undefined if uncommented, when coloring the keyboard keys
+                //updateSuperscripts(repeated);
+            }
+           // console.log(repeated, "BAGG");
+        }
+    
+        // Iteration 1
+        // TODO consideer using interger states for keyboard and chose the one 
+        // with higer priority
+
+        for (let i = 0; i<target.length; i++) {
+            let letter = target[i];
+            if (target[i] == currentGuess[i]) {
+                result[i] = "GREEN";
+                keyboardState[letter] = "GREEN";
+                bagTarget[letter]--;
             }
         }
-        updateSuperscripts();
 
-        // Flip animation + coloring
-        const tiles = Array.from(document.querySelectorAll('.row')[row].children);
-        tiles.forEach((tile, i) => {
-            const letter = currentGuess[i];
-            const keyEl = getKeyElement(letter);
-
-            // Colors the layout 
-            setTimeout(() => {
-                tile.classList.add('flipped');
-
-                let colorClass = 'gray';
-                if (letter === target[i]) {
-                    colorClass = 'green';
-                    if (keyEl) keyEl.style.background = '#538d4e';
-                    countInTarget[letter]--;
-                } else if (target.includes(letter) && countInTarget[letter]-- > 0) {
-                    colorClass = 'yellow';
-                    if (keyEl && keyEl.style.background !== '#538d4e') keyEl.style.background = '#b59f3b';
-                } else {
-                    if (keyEl && !['#538d4e', '#b59f3b'].includes(keyEl.style.background)) {
-                        keyEl.style.background = '#3a3a3c';
-                    }
+        // Iteration 2 checks for yellow letters
+        for (let i = 0; i<target.length; i++) {
+            let letter = currentGuess[i];
+            if (result[i]) continue;
+            
+            if (bagTarget[letter] > 0) {
+                result[i] = "YELLOW";
+                bagTarget[letter]--;
+                if (keyboardState[letter] !== "GREEN") {
+                    keyboardState[letter] = "YELLOW"
                 }
 
-                tile.classList.add(colorClass);
-                tile.querySelector('.back').textContent = letter;
-            }, i * 300);
-        });
+            } else {
+                if (keyboardState[letter] !== "YELLOW" &&
+                    keyboardState[letter] !== "GREEN") {
+                    keyboardState[letter] = "GRAY";
+                }
+                result[i] = "GRAY";
+            }
+        }
+
+        animateGuess(result, keyboardState);
+
+        console.log(result);
+        console.log(keyboardState);
+
+        
+        // TODO update the superscript 
+        // Give the result to the Flip animation and do it   
+        // Color each letter in keyboard accordingly
+
+        
+        
+
+        
+        
+
+        // ===============
+
+        //console.log("submit");
+
+        //let countInTarget = {};
+        //for (let c of target) countInTarget[c] = (countInTarget[c] || 0) + 1;
+
+        //// Not needed
+        //// Update revealed counts
+        //for (let c of currentGuess) {
+        //    if (target.includes(c)) {
+        //        const real = target.split('').filter(x => x === c).length;
+        //        counts[c] = Math.max(counts[c] || 0, real);
+        //        console.log(counts[c], "COUNT", c);
+        //    }
+        //}
+
+
+        //console.log(countInTarget);
+
+        
+
+        // -----------------------------------------
 
         setTimeout(() => {
             if (currentGuess === target) {
@@ -748,23 +1111,24 @@ function createExampleRow(word, highlightIndex) {
                     gameOver = true;
                 }
             }
-        }, 5 * 150 + 300);
+            isAnimating = false;
+        }, 5 * 450);
     }
 
-    function updateSuperscripts() {
-        Object.keys(counts).forEach(l => {
-            const sup = document.getElementById(`sup-${l}`);
-            if (sup) sup.textContent = counts[l] > 1 ? counts[l] : '';
-        });
+
+    function handleGameOverClick() {
+        //TODO open custom modal to show additioal info about the game
+        if (gameOver) showMessage(`${t('gameOver')} ${target}`)
     }
 
     function newGame() {
-        console.log("New game, word changed!!");
-        target = words[lang][Math.floor(Math.random() * words[lang].length)];
+        target = answers[Math.floor(Math.random() * answers.length)];
+        console.log("New game, word changed!!, DEBUG: Tatget -", target);
         currentGuess = '';
         row = 0;
         gameOver = false;
         counts = {};
+        keyboardState={};
         updateTexts();
         buildBoard();
         buildKeyboard();
@@ -782,6 +1146,8 @@ function createExampleRow(word, highlightIndex) {
             if (allowed.includes(k)) handleKey(k);
         }
     });
+
+    document.body.addEventListener('click', handleGameOverClick);
 
     const helpModal = document.getElementById('help-modal');
 
@@ -805,22 +1171,44 @@ function createExampleRow(word, highlightIndex) {
     const modal = document.getElementById('settings-modal');
     const select = document.getElementById('lang-select');
     const easySwitch = document.getElementById('easy-switch');
+    const hintsSwitch = document.getElementById('hints-switch');
 
     document.getElementById('settings-btn').onclick = () => {
         select.value = lang;
         easySwitch.checked = easyMode;
-        console.log("MODE", easyMode);
+        hintsSwitch.checked = letterHintsOn;
+        document.getElementById('light-switch').checked = lightTheme;
+        document.getElementById('highcontrast-switch').checked = highContrast;
+        buildLengthSelector();
         modal.style.display = 'flex';
         select.focus();
     };
 
     document.getElementById('apply-settings').onclick = () => {
-        lang = select.value;
+        const newLang = select.value;
         easyMode = easySwitch.checked;
-        console.log("MODE", easyMode);
+        letterHintsOn = hintsSwitch.checked;
+        lightTheme = document.getElementById('light-switch').checked;
+        highContrast = document.getElementById('highcontrast-switch').checked;
+
+        document.body.classList.toggle('light', lightTheme);
+        document.body.classList.toggle('high-contrast', highContrast);
+
+        localStorage.setItem('lightTheme', lightTheme);
+        localStorage.setItem('highContrast', highContrast);
+        localStorage.setItem('easyMode', easyMode);
+        localStorage.setItem('letterHintsOn', letterHintsOn);
+
+        console.log("EASYMODE", easyMode);
+
         modal.style.display = 'none';
-        newGame();
-    };
+        if (lang !== newLang) {
+            lang = newLang;
+            localStorage.setItem('lang', lang);
+            getWordList(targetLetterCount).then(() => { newGame()});
+        }
+
+    }
 
     document.getElementById('cancel-settings').onclick = () => {
         modal.style.display = 'none';
@@ -854,7 +1242,47 @@ function createExampleRow(word, highlightIndex) {
     document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
 
     // Start game
-    newGame();
+    getWordList(targetLetterCount).then(response => {
+        words = response;
+        newGame();
+    });
+
+    async function getWordList(length=5) {
+        const defWords = {
+            en: ['ABOUT','APPLE','BEACH','CRANE','DREAM','EAGLE','FLAME','GRAPE','HOUSE','LEMON','MANGO','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TABLE','WATER','ZEBRA'],
+            hy: ['ՀԱՅԵՐ','ԳԻՇԵՐ','ԼՈՒՍԸ','ՀԱՅՐԸ','ՏԱՆԻՔ','ՔԱՎՈՐ','ԳՆԴԱԿ','ԲԱՐԻՔ','ՏՆԱԿՍ','ՊԱՀԱԿ','ՄԿՐԱՏ','ՀԻՄԱՐ','ԲԱՆԱԿ','ԱՂՋԻԿ','ՄԱՐՏԻԿ','ԳԵՏԱԿ','ԺՊԻՏՍ','ՄԱՅԻՍ','ՎԱՐԴԱԿ','ԲԱԺԱԿ']
+        };
+
+        try {
+            const responseAll = await fetch(`./data/${lang}/${length}-letters.txt`);
+            const responseAns = await fetch(`./data/${lang}/${length}-letters-answers.txt`);
+            //const responseEn = await fetch(`./data/en/${length}-letters.txt`);
+
+            if (!responseAll.ok) {
+                words[lang] = defWords[lang];
+                
+            } else {
+                const text = await responseAll.text();
+                words[lang] = text.split('\n').filter(w => w.trim() !== "");
+            }
+
+            if (!responseAns.ok) {
+                answers = words[lang];
+            } else {
+                const text = await responseAns.text();
+                answers = text.split('\n').filter(w => w.trim() !== "");
+
+            }
+
+            console.log("WORDS", words, answers);
+
+            return words;
+        } catch (err) {
+            console.log(`Error fetching words: ${err}`);
+            return defWords;
+        }
+    }
+
 </script>
 </body>
 </html>
