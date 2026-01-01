@@ -599,7 +599,7 @@
         en: [
             ['Q','W','E','R','T','Y','U','I','O','P'],
             ['A','S','D','F','G','H','J','K','L'],
-            ['ENTER','Z','X','C','V','B','N','M','DELETE']
+            ['DELETE','Z','X','C','V','B','N','M','ENTER']
         ],
         hy: [
             ['Ա','Բ','Գ','Դ','Ե','Զ','Է','Ը','Թ','Ժ','Ի','Լ','Խ'],
@@ -832,7 +832,7 @@
                 const key = document.createElement('div');
                 key.className = 'key';
                 if (k === 'ENTER' || k === 'DELETE') key.classList.add('large');
-                key.textContent = k === 'DELETE' ? 'Delete' : k;
+                key.textContent = k === 'DELETE' ? 'DELETE' : k;
                 if (k !== 'ENTER' && k !== 'DELETE') {
                     const sup = document.createElement('sup');
                     sup.id = `sup-${k.toLowerCase()}`;
