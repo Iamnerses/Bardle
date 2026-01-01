@@ -493,7 +493,7 @@
     </button>
     <h1 id="game-title" data-i18n="title">Wordle</h1>
 
-    <button id="custom-word-btn" class="icon-btn" aria-label="Create Custom Word">
+    <button id="custom-word-btn" class="icon-btn" title="Create Custom Word">
         <svg viewBox="0 0 24 24" fill="gray">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
@@ -637,6 +637,7 @@
             settingsHint: "Show letter hints, if letter repeats",
             highcontrast: "Enable color blind (high contrast) mode",
             wordLength: "Number of letters",
+            letterCountErr: "Unable to change letter count to ",
             lightmode: "Enable light mode"
         },
         hy: {
@@ -666,6 +667,7 @@
             settingsHint: "Ցուցադրել հուշում, եթե տվյալ տառը կրկնվում է",
             highcontrast: "Միացնել գունակույր եղանակը",
             wordLength: "Տառերի քանակ",
+            letterCountErr: "Հնարավոր չէ փոխել տառերի քանակը` ",
             lightmode: "Լուսավոր գունային եղանակ"
         }
     };
@@ -1123,7 +1125,7 @@
 
     function newGame() {
         target = answers[Math.floor(Math.random() * answers.length)];
-        console.log("New game, word changed!!, DEBUG: Tatget -", target);
+        //console.log("New game, word changed!!, DEBUG: Tatget -", target);
         currentGuess = '';
         row = 0;
         gameOver = false;
@@ -1219,16 +1221,23 @@
     };
 
     document.getElementById('custom-word-btn').onclick = () => {
-        const custom = prompt(t('enterCustomWord') || 'Enter a 5-letter word for others to guess:');
-        if (custom && custom.length === 5 && /^[A-ZԱ-Ֆ]+$/i.test(custom)) {
-            target = custom.toUpperCase();
-            row = 0;
-            currentGuess = '';
-            gameOver = false;
-            counts = {};
-            buildBoard();
-            updateRow();
-            showMessage(t('customWordSet') || 'Custom word set! Share this game.');
+        const custom = prompt(t('enterCustomWord') || 'Enter a 4 to 10 letter word for others to guess:');
+        if (custom && custom.length < 11 && custom.length > 3 && /^[A-ZԱ-Ֆ]+$/i.test(custom)) {
+
+            targetLetterCount = custom.length;
+            getWordList(targetLetterCount).then(response => {
+                target = custom.toUpperCase();
+                row = 0;
+                currentGuess = '';
+                gameOver = false;
+                counts = {};
+                keyboardState={};
+                buildBoard();
+                updateRow();
+                buildKeyboard();
+                showMessage(t('customWordSet') || 'Custom word set! Share this game.');
+            });
+
             // Later: you can add location.hash = btoa(target) for sharing
         } else if (custom) {
             showMessage(t('invalidWord') || 'Must be exactly 5 letters!');
@@ -1247,11 +1256,13 @@
         newGame();
     });
 
-    async function getWordList(length=5) {
+    async function getWordList(length) {
         const defWords = {
             en: ['ABOUT','APPLE','BEACH','CRANE','DREAM','EAGLE','FLAME','GRAPE','HOUSE','LEMON','MANGO','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TABLE','WATER','ZEBRA'],
             hy: ['ՀԱՅԵՐ','ԳԻՇԵՐ','ԼՈՒՍԸ','ՀԱՅՐԸ','ՏԱՆԻՔ','ՔԱՎՈՐ','ԳՆԴԱԿ','ԲԱՐԻՔ','ՏՆԱԿՍ','ՊԱՀԱԿ','ՄԿՐԱՏ','ՀԻՄԱՐ','ԲԱՆԱԿ','ԱՂՋԻԿ','ՄԱՐՏԻԿ','ԳԵՏԱԿ','ԺՊԻՏՍ','ՄԱՅԻՍ','ՎԱՐԴԱԿ','ԲԱԺԱԿ']
         };
+
+        const defCount = 5;
 
         try {
             const responseAll = await fetch(`./data/${lang}/${length}-letters.txt`);
@@ -1272,6 +1283,18 @@
                 const text = await responseAns.text();
                 answers = text.split('\n').filter(w => w.trim() !== "");
 
+            }
+
+            if (!responseAll.ok && !responseAns.ok) {
+                showMessage(`${t('letterCountErr')}${targetLetterCount}`);
+                targetLetterCount = defCount;
+
+                document.querySelectorAll('.length-square').forEach((s) => { 
+                    s.classList.remove('selected');
+                    if (s.innerHTML === `${targetLetterCount}`) {
+                        s.classList.add('selected');
+                    }
+                });
             }
 
             console.log("WORDS", words, answers);
