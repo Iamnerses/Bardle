@@ -24,8 +24,11 @@
         --modal-bg: #333;
         --red: #c93b3b;
 
-        --tile-size: 62px;
+        --current-word-length: 5;
         --tile-gap: 8px;
+
+        --fluid-size: calc((95vw - (var(--current-word-length) * var(--tile-gap))) / var(--current-word-length));
+        --tile-size: min(60px, var(--fluid-size));
     } 
 
     body.light {
@@ -130,18 +133,6 @@
             justify-content: center;
             width: 100%;
         }
-
-        .tile { 
-            font-size: 1.7em;
-        }
-        .row {grid-template-columns: repeat(5, 52px); }
-        .key {
-            min-width: 10px
-        }
-
-        :root {
-            --tile-size: 52px;
-        }
     }
 
     header button {
@@ -185,11 +176,16 @@
         display: grid;
         grid-template-rows: repeat(6, var(--tile-size));
         width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+
+        max-width: 100vw;
+        padding-left: 0;
+        padding-right: 0;
         gap: var(--tile-gap);
-        max-width: 90%;
         padding-top: 30px;
-        margin: 0 auto;
         perspective: 1000px; 
+        box-sizing: border-box;
     }
     
     .row {
@@ -197,12 +193,13 @@
         grid-auto-flow: column;
         grid-auto-columns: var(--tile-size);
         gap: var(--tile-gap);
+        justify-content: center;
     }
 
     .tile {
         width: var(--tile-size);
         height: var(--tile-size);
-        font-size: 2em;
+        font-size: calc(var(--tile-size) * 0.5);
         font-weight: bold;
         display: flex;
         align-items: center;
@@ -273,22 +270,30 @@
 
     #keyboard {
         padding-top: 20px;
+        width: 100%;
+        max-width: 600px;
+        box-sizing: border-box;
+        margin: 0 auto;
         padding-bottom: 20px;
         user-select: none;
         -webkit-user-select: none;
     }
     .key-row {
         display: flex;
+        width: 100%;
+        gap: min(1.5vw, 6px);
         justify-content: center;
-        gap: 6px;
         margin: 4px 0;
     }
     .key {
         background: var(--key-bg);
         color:var(--tile-text-color-before);
-        padding: 14px 8px;
-        min-width: 25px;
+        flex: 1;
+        min-width: 0;
+        padding: 15px 0;
+        font-size: max(12px, 1.2vw);
         border-radius: 6px;
+        text-align: center;
         font-weight: bold;
         cursor: pointer;
         position: relative;
@@ -314,7 +319,7 @@
         background: var(--btnHover); 
         color: var(--greenbtn)
     }
-    .key.large { min-width: 65px; font-size: 0.9em; }
+    .key.large { flex: 1.5; }
     .key sup {
         position: absolute;
         top: 2px;
@@ -484,13 +489,6 @@
         align-items: center; 
         justify-content: space-between;
         text-align:left;
-    }
-
-    @media (max-width: 360px) {
-        #board {
-            transform: scale(0.9);
-            transform-origin: top center;
-        }
     }
 
     .bottomButtons {
@@ -673,12 +671,12 @@
         en: [
             ['Q','W','E','R','T','Y','U','I','O','P'],
             ['A','S','D','F','G','H','J','K','L'],
-            ['DELETE','Z','X','C','V','B','N','M','ENTER']
+            ['DEL','Z','X','C','V','B','N','M','ENTER']
         ],
         hy: [
             ['Ա','Բ','Գ','Դ','Ե','Զ','Է','Ը','Թ','Ժ','Ի','Լ','Խ'],
             ['Ծ','Կ','Հ','Ձ','Ղ','Ճ','Մ','Յ','Ն','Շ','Ո','Չ','Պ'],
-            ['ENTER','Ջ','Ռ','Ս','Վ','Տ','Ր','Ց','Ո','Ւ','DELETE'],
+            ['ENTER','Ջ','Ռ','Ս','Վ','Տ','Ր','Ց','Ո','Ւ','DEL'],
             ['Փ','Ք','Օ','Ֆ']
         ]
     };
@@ -905,6 +903,7 @@
                 tile.dataset.col = j;
                 r.appendChild(tile);
             }
+            document.documentElement.style.setProperty('--current-word-length', targetLetterCount);
             board.appendChild(r);
         }
     }
@@ -917,9 +916,9 @@
             row.forEach(k => {
                 const key = document.createElement('div');
                 key.className = 'key';
-                if (k === 'ENTER' || k === 'DELETE') key.classList.add('large');
-                key.textContent = k === 'DELETE' ? 'DELETE' : k;
-                if (k !== 'ENTER' && k !== 'DELETE') {
+                if (k === 'ENTER' || k === 'DEL') key.classList.add('large');
+                key.textContent = k === 'DEL' ? 'DEL' : k;
+                if (k !== 'ENTER' && k !== 'DEL') {
                     const sup = document.createElement('sup');
                     sup.id = `sup-${k.toLowerCase()}`;
                     key.appendChild(sup);
@@ -1110,6 +1109,7 @@
 
     // TODO used for answer coloring (shouldnt be global) 
     let result = [];
+    let totalResult = [];
 
     function handleHintClick() {
         modalCont.style.maxWidth = 'min-content';
@@ -1144,7 +1144,7 @@
         }
         hintWordCont.appendChild(r);
 
-        const validIndices = result.map((val, index) => 
+        const validIndices = totalResult.map((val, index) => 
             val !== 'GREEN' ? index : null).filter(val => val !== null);
         let randomIndex = Math.floor(Math.random() * validIndices.length); 
         let hintIndex = validIndices[randomIndex];
@@ -1255,6 +1255,11 @@
                 result[i] = "GRAY";
             }
         }
+        
+        // For hints
+        totalResult = totalResult.length === 0 
+            ? [...result] 
+            : totalResult.map((val, i) => result[i] === 'GREEN' ? 'GREEN' : val);
 
         // Animation to show guess
         animateGuess(result, keyboardState);

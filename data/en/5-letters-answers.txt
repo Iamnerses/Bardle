@@ -485,11 +485,8 @@ dowry
 dozen
 draft
 drain
-drake
 drama
 drank
-drape
-drawl
 drawn
 dread
 dream
@@ -1073,7 +1070,6 @@ lying
 lymph
 lynch
 lyric
-macaw
 macho
 macro
 madam
@@ -1081,7 +1077,6 @@ madly
 mafia
 magic
 magma
-maize
 major
 maker
 mambo
@@ -1422,9 +1417,7 @@ quirk
 quite
 quota
 quote
-quoth
 rabbi
-rabid
 racer
 radar
 radii
