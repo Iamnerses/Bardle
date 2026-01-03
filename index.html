@@ -79,16 +79,69 @@
 
     header {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
         align-items: center;
         margin-left: auto;
         margin-right: auto;
         max-width: 700px;
-        gap: 30px; 
+        gap: 40px; 
         flex-wrap: wrap;
         margin-bottom: 20px;
         padding: 10px 0;
         border-bottom: 2px solid #818384;
+    }
+
+    .header-group {
+        display: flex;
+        gap: 30px;
+        flex: 1; 
+    }
+
+    .header-group.right {
+        justify-content: flex-end;
+    }
+
+    #game-title {
+        margin: 0;
+        text-align: center;
+        flex: 0 0 auto; /* Title only takes as much space as it needs */
+    }
+
+    @media (max-width: 530px) {
+        header {
+            justify-content: center;
+        }
+
+        #game-title {
+            order: 2;      /* Moves title to the middle row */
+            width: 100%;   /* Forces it to occupy its own line */
+            margin: 10px 0;
+        }
+
+        .header-group.left {
+            order: 1;      /* Top row */
+            justify-content: center;
+            width: 100%;
+        }
+
+        .header-group.right {
+            order: 3;      /* Bottom row */
+            justify-content: center;
+            width: 100%;
+        }
+
+        .tile { 
+            font-size: 1.7em;
+        }
+        .row {grid-template-columns: repeat(5, 52px); }
+        .key {
+            min-width: 10px
+        }
+
+        :root {
+            --tile-size: 52px;
+        }
     }
 
     header button {
@@ -125,6 +178,7 @@
         color: white;
         cursor: pointer;
     }
+
     button:hover { opacity: 0.9; }
 
     #board {
@@ -138,12 +192,6 @@
         perspective: 1000px; 
     }
     
-    body.light .modal-content {
-        background: #f0f0f0;
-        color: #000;
-        border-color: #ccc;
-    }
-
     .row {
         display: grid;
         grid-auto-flow: column;
@@ -360,21 +408,6 @@
         border-radius: 34px;
     }
 
-
-    @media (max-width: 500px) {
-        .tile { 
-            font-size: 1.7em;
-        }
-        .row {grid-template-columns: repeat(5, 52px); }
-        .key {
-            min-width: 10px
-        }
-
-        :root {
-            --tile-size: 52px;
-        }
-    }
-
     @keyframes shake {
         0%, 100% { transform: translateX(0); }
         10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
@@ -410,12 +443,14 @@
 
     .icon-btn {
         background: none;
+        color:var(--text);
         border: none;
         cursor: pointer;
         padding: 10px;
         border-radius: 10px;
         transition: all 0.3s ease;
     }
+
     .length-square {
         width: 50px;
         height: 50px;
@@ -451,28 +486,6 @@
         text-align:left;
     }
 
-    @media (max-width: 700px) {
-        header {
-            padding: 15px 20px;
-            gap: 15px;
-        }
-        .left-buttons, .right-buttons {
-            gap: 15px;
-        }
-        #game-title {
-            font-size: 2.4em;
-        }
-        .icon-btn {
-            width: 48px;
-            height: 48px;
-        }
-        .icon-btn svg {
-            width: 24px;
-            height: 24px;
-        }
-
-    }
-
     @media (max-width: 360px) {
         #board {
             transform: scale(0.9);
@@ -480,43 +493,104 @@
         }
     }
 
+    .bottomButtons {
+        padding-top:20px;
+        gap:10px;
+        display:none;
+        margin: 0 auto;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .is-visible {
+        display: flex;
+    }
+
+    .is-active {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .apply-btn :disabled {
+        background: #aaa;
+    }
+
 </style>
 </head>
 <body>
 
-<header>
-    <button id="help-btn" class="icon-btn">
-        <svg viewBox="0 0 24 24" fill="gray"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
-    </button>
-    <button id="settings-btn" class="icon-btn">
-        <svg viewBox="0 0 24 24" fill="gray"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.5-.47h-3.84a.49.49 0 0 0-.5.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.32.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.5.41h3.84c.26 0 .45-.17.5-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.1.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-    </button>
-    <h1 id="game-title" data-i18n="title">Wordle</h1>
+    <header>
+        <div class="header-group left">
+            <button id="help-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="gray"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+            </button>
+            <button id="settings-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="gray"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.5-.47h-3.84a.49.49 0 0 0-.5.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.32.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.5.41h3.84c.26 0 .45-.17.5-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.1.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </button>
+        </div>
 
-    <button id="custom-word-btn" class="icon-btn" title="Create Custom Word">
-        <svg viewBox="0 0 24 24" fill="gray">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-        </svg>
-    </button>
-    <button id="restart-btn" class="icon-btn">
-        <svg viewBox="0 0 24 24" fill="gray"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-    </button>
-</header>
+        <h1 id="game-title" data-i18n="title">Wordle</h1>
+
+        <div class="header-group right">
+            <button id="custom-word-btn" class="icon-btn" title="Create Custom Word">
+                <svg viewBox="0 0 24 24" fill="gray">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button id="restart-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="gray"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </button>
+        </div>
+    </header>
 
 <div id="message-popup" class="message-popup">
     <span id="message-text"></span>
 </div>
 
 <div id="board"></div>
+
+<div class="bottomButtons" id="bottom-btn">
+    <div >
+        <button onClick="handleGameOver()" class="icon-btn" style="min-height:45px;">
+            <b><span data-i18n="giveUp"></span></b>
+        </button>
+    </div>
+
+    <div style="witdh:90px;">
+        <button onClick="handleHintClick()" class="icon-btn" style="min-height:45px;display: inline-flex;justify-content: center;gap: 5px;" id="get-hint-btn">
+            <svg width="20" height="20" stroke="var(--text)" viewBox="0 0 24 24" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7"></path>
+                <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3">
+                </path><path d="M9.7 17l4.6 0"></path>
+                <b><span data-i18n="getHint"></span></b>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="modal" id="hint-modal">
+    <div class="modal-content">
+        <h2 data-i18n="hintTitle" style="margin-top:0; color:var(--text)"></h2>
+        <div id="hint-word"></div>
+        <div id="show-hint-btn">
+            <b><button style="margin-top:30px" class="apply-btn" id="show-hint" data-i18n="showHint"></button></b>
+        </div>
+    </div>
+</div>
+
+</div>
+
 <div id="keyboard"></div>
 
 
 <div class="modal" id="help-modal">
     <div class="modal-content">
         <h2 data-i18n="howToPlay" style="margin-top:0px">How to Play</h2>
-        <p data-i18n="guessTheWord">Guess the word in 6 tries.</p>
-        <p data-i18n="validWord">Each guess must be a valid 5-letter word. Press Enter to submit.</p>
-        <p data-i18n="colorsExplain">After each guess, the tile colors will show how close you were:</p>
+        <p data-i18n="guessTheWord"></p>
+        <p data-i18n="validWord"></p>
+        <p data-i18n="colorsExplain"></p>
 
         <div class="example-row" id="example1"></div>
         <p id="explanation-text-1"></p>
@@ -527,7 +601,7 @@
         <div class="example-row" id="example3"></div>
         <p id="explanation-text-3"></p>
 
-        <p style="text-align:center; margin-top:30px;"><strong data-i18n="newWord">A new word every time you restart!</strong></p>
+        <p style="text-align:center; margin-top:30px;"><strong data-i18n="newWord"></strong></p>
 
         <div style="text-align:center; margin-top:30px;">
             <button id="close-help" data-i18n="close">Close</button>
@@ -638,6 +712,10 @@
             highcontrast: "Enable color blind (high contrast) mode",
             wordLength: "Number of letters",
             letterCountErr: "Unable to change letter count to ",
+            giveUp: "Give Up",
+            getHint: "Get Hint",
+            hintTitle: "Hint",
+            showHint: "Show Hint",
             lightmode: "Enable light mode"
         },
         hy: {
@@ -668,6 +746,10 @@
             highcontrast: "Միացնել գունակույր եղանակը",
             wordLength: "Տառերի քանակ",
             letterCountErr: "Հնարավոր չէ փոխել տառերի քանակը` ",
+            giveUp: "Հանձնվել",
+            getHint: "Հուշում",
+            hintTitle: "Հուշում",
+            showHint: "Ցուցադրել",
             lightmode: "Լուսավոր գունային եղանակ"
         }
     };
@@ -676,6 +758,7 @@
     let target = '';
     let targetLetterCount = 5;
     let currentGuess = '';
+    let currentGuessFull = '';       // full last word string used for hint
     let row = 0;
     let previousLength = 0;
     let gameOver = false;
@@ -691,6 +774,7 @@
     let words = {}    // Allowed guess lists
     let answers = []  // Answers array
 
+
     lightTheme = localStorage.getItem('lightTheme') === 'true';
     highContrast = localStorage.getItem('highContrast') === 'true';
     easyMode = localStorage.getItem('easyMode') === 'true' || false;
@@ -699,6 +783,7 @@
 
     document.body.classList.toggle('light', lightTheme);
     document.body.classList.toggle('high-contrast', highContrast);
+
 
     function t(key) {
         return translations[lang][key] || key;
@@ -808,6 +893,7 @@
         for (let i = 0; i < 6; i++) {
             const r = document.createElement('div');
             r.className = 'row';
+            // TODO Wrap the following to a function so it reusable
             for (let j = 0; j < targetLetterCount; j++) {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
@@ -966,6 +1052,28 @@
             container.appendChild(square);
         }
     }
+    
+    // =============== Definitely not neccessary UI helpers ================
+
+    // Smooth show
+    function showElement(el) {
+        el.classList.add('is-visible');
+        el.offsetHeight; // Force reflow
+        el.classList.add('is-active');
+    }
+
+    // Smooth hide
+    function hideElement(el) {
+        if (el.classList.contains("is-active")) {
+            el.classList.remove('is-active');
+            el.addEventListener('transitionend', function callback() {
+                el.classList.remove('is-visible');
+            }, { once: true });
+
+        }
+    }
+
+
 
     // =========================== Game Logic ===============================
 
@@ -979,13 +1087,100 @@
         return result;
     }
 
-    // TODO understand this function 
-    // Fix layout colorings so that after tunring green it cannot be changed
+
+    const buttons = document.getElementById("bottom-btn");
+    const getHint = document.getElementById("get-hint-btn");
+    const showHint = document.getElementById("show-hint");
+    const hintModal = document.getElementById("hint-modal");
+    const modalCont = hintModal.children[0];
+    const hintWordCont = document.getElementById("hint-word");
+
+    // TODO gameOver modal should be shown 
+    function handleGameOver(win) {
+        gameOver = true;
+        hideElement(buttons);
+        if (win) {
+            showMessage(t('brilliant'))
+
+        } else {
+            showMessage(`${t('gameOver')} ${target}`)
+        }
+        //buttons.style.display = 'none';
+    }
+
+    // TODO used for answer coloring (shouldnt be global) 
+    let result = [];
+
+    function handleHintClick() {
+        modalCont.style.maxWidth = 'min-content';
+
+        hintWordCont.innerHTML = '';
+        // Draws the last guessed word in modal
+        const r = document.createElement('div');
+        r.className = 'row';
+        // TODO Wrap the following to a function so it reusable
+        for (let j = 0; j < targetLetterCount; j++) {
+            let letter = currentGuessFull[j];
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.classList.add('flipped');
+            tile.innerHTML = `
+                <div class="front"></div>
+                <div class="back"></div>
+            `;
+            tile.dataset.col = j;
+                
+            let colorClass = 'gray';
+            if (result[j] == "GREEN") {
+                colorClass = 'green';
+            } else if (result[j] == "YELLOW") {
+                colorClass = 'yellow';
+            }
+ 
+            tile.classList.add(colorClass);
+            tile.querySelector('.back').textContent = letter;
+
+            r.appendChild(tile);
+        }
+        hintWordCont.appendChild(r);
+
+        const validIndices = result.map((val, index) => 
+            val !== 'GREEN' ? index : null).filter(val => val !== null);
+        let randomIndex = Math.floor(Math.random() * validIndices.length); 
+        let hintIndex = validIndices[randomIndex];
+
+        let hintTile = Array.from(r.children).find(el => 
+            el.dataset.col == `${hintIndex}`);
+        let hintLetter = target[hintIndex];
+
+        console.log(hintTile, hintIndex, validIndices);
+        
+        showHint.onclick = () => {
+            console.log("click");
+            hintTile.classList.remove('flipped','gray','yellow');
+            hintTile.querySelector('.front').textContent = hintLetter;
+            hintTile.querySelector('.back').textContent = '';
+            hintTile.querySelector('.front').classList.add('tileActive');
+            setTimeout(() => {
+                hintTile.classList.add('flipped', 'green');
+                hintTile.querySelector('.back').textContent = hintLetter;
+            }, 150);
+        };
+        hintModal.style.display ='flex';
+    }
+
+    hintModal.onclick = (e) => {
+        if (e.target === hintModal) hintModal.style.display = 'none';
+    };
+
+    // TODO
     // Add hint functionality
     // Separate UI flow from the backend
     function submit() {
         currentGuess = currentGuess.toLowerCase();
         target = target.toLowerCase();
+        currentGuessFull = currentGuess;
+
         if (!easyMode) {
             if (!words[lang].includes(currentGuess)) {
                 // TODO transfer following to separate UI function
@@ -1003,9 +1198,10 @@
                 return;
             }
         }
+        
+        showElement(buttons);
 
-
-        let result = []
+        result = [];
         for (let i = 0; i < targetLetterCount; i++) {
             result.push(null);
         }
@@ -1024,12 +1220,11 @@
                 //TODO why this causes the keyEl to undefined if uncommented, when coloring the keyboard keys
                 //updateSuperscripts(repeated);
             }
-           // console.log(repeated, "BAGG");
         }
     
-        // Iteration 1
+        // Iteration 1 - check for correct letters
         // TODO consideer using interger states for keyboard and chose the one 
-        // with higer priority
+        // with higer priority this works for now
 
         for (let i = 0; i<target.length; i++) {
             let letter = target[i];
@@ -1061,56 +1256,33 @@
             }
         }
 
+        // Animation to show guess
         animateGuess(result, keyboardState);
 
         console.log(result);
         console.log(keyboardState);
 
+        // Hide the hint buttons immediately, no animation delay
+        if (currentGuess == target || (currentGuess !== target && row === 5)) {
+            hideElement(buttons);
+        }
+
         
         // TODO update the superscript 
         // Give the result to the Flip animation and do it   
         // Color each letter in keyboard accordingly
-
         
-        
-
-        
-        
-
-        // ===============
-
-        //console.log("submit");
-
-        //let countInTarget = {};
-        //for (let c of target) countInTarget[c] = (countInTarget[c] || 0) + 1;
-
-        //// Not needed
-        //// Update revealed counts
-        //for (let c of currentGuess) {
-        //    if (target.includes(c)) {
-        //        const real = target.split('').filter(x => x === c).length;
-        //        counts[c] = Math.max(counts[c] || 0, real);
-        //        console.log(counts[c], "COUNT", c);
-        //    }
-        //}
-
-
-        //console.log(countInTarget);
-
-        
-
         // -----------------------------------------
 
+        //TODO Consider using async funcion for animation and using .then for this
         setTimeout(() => {
             if (currentGuess === target) {
-                showMessage(t('brilliant'))
-                gameOver = true;
+                handleGameOver(true);
             } else {
-                row++;
+                row++;           // ***
                 currentGuess = '';
                 if (row === 6) {
-                    showMessage(`${t('gameOver')} ${target}`)
-                    gameOver = true;
+                    handleGameOver(false);
                 }
             }
             isAnimating = false;
@@ -1123,10 +1295,13 @@
         if (gameOver) showMessage(`${t('gameOver')} ${target}`)
     }
 
+    //TODO new bug restarting while the animation is on puts the row++ 
+    // most likely is caused by the timeout functions (line marked *** most likely)
     function newGame() {
         target = answers[Math.floor(Math.random() * answers.length)];
-        //console.log("New game, word changed!!, DEBUG: Tatget -", target);
+        console.log("New game, word changed!!, DEBUG: Tatget -", target);
         currentGuess = '';
+        hideElement(buttons);
         row = 0;
         gameOver = false;
         counts = {};
@@ -1134,7 +1309,7 @@
         updateTexts();
         buildBoard();
         buildKeyboard();
-        updateRow(); // clear current
+        updateRow(); 
     }
 
     // Physical keyboard
