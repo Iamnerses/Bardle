@@ -513,6 +513,13 @@
         background: #aaa;
     }
 
+    .tile sup {
+        position: absolute; 
+        top: 5px;
+        right: 5px;
+        font-size: 0.5em;
+    }
+
 </style>
 </head>
 <body>
@@ -867,9 +874,13 @@
     // ========================================================================
 
     function getKeyElement(letter) {
-        return Array.from(document.querySelectorAll('.key')).find(el =>
-            el.textContent.trim().toLowerCase() === letter.toLowerCase() || el.textContent.startsWith(letter)
-        );
+        return Array.from(document.querySelectorAll('.key')).find(el => {
+            const clone = el.cloneNode(true);
+            const sup = clone.querySelector('sup');
+            if (sup) sup.remove(); 
+
+            return clone.textContent.trim().toLowerCase() === letter.toLowerCase();
+        });
     }
 
     function showMessage(text) {
@@ -906,6 +917,7 @@
             board.appendChild(r);
         }
     }
+
     function buildKeyboard() {
         const kb = document.getElementById('keyboard');
         kb.innerHTML = '';
@@ -977,11 +989,13 @@
     }
 
 
-    function animateGuess(result, kbState) {
+    function animateGuess(result, kbState, repeated) {
         const tiles = Array.from(document.querySelectorAll('.row')[row].children);
         tiles.forEach((tile, i) => {
             let letter = currentGuess[i];
             isAnimating = true;
+            
+
 
             setTimeout(() => {
                 tile.classList.add('flipped');
@@ -995,6 +1009,15 @@
 
                 tile.classList.add(colorClass);
                 tile.querySelector('.back').textContent = letter;
+
+                if (letterHintsOn) {
+                    if (repeated[letter]) {
+                        let sup = document.createElement('sup');
+                        sup.textContent = repeated[letter];
+                        tile.querySelector('.back').appendChild(sup);
+                    }
+                }
+
             }, i * 300);
         });
 
@@ -1007,6 +1030,11 @@
         for (let i=0; i < currentGuess.length; i++) {
             let letter = currentGuess[i];
             const keyEl = getKeyElement(letter);
+
+            if (!keyEl) {
+                console.warn(`Could not find keyboard key for: ${letter}`);
+                continue; 
+            }
 
             keyEl.classList.remove('keyYellow', 'keyGray');
 
@@ -1071,8 +1099,6 @@
         }
     }
 
-
-
     // =========================== Game Logic ===============================
 
     function frequencyMap(word) {
@@ -1084,7 +1110,6 @@
         }
         return result;
     }
-
 
     const buttons = document.getElementById("bottom-btn");
     const getHint = document.getElementById("get-hint-btn");
@@ -1155,7 +1180,6 @@
         console.log(hintTile, hintIndex, validIndices);
         
         showHint.onclick = () => {
-            console.log("click");
             hintTile.classList.remove('flipped','gray','yellow');
             hintTile.querySelector('.front').textContent = hintLetter;
             hintTile.querySelector('.back').textContent = '';
@@ -1198,8 +1222,6 @@
             }
         }
         
-        showElement(buttons);
-
         result = [];
         for (let i = 0; i < targetLetterCount; i++) {
             result.push(null);
@@ -1208,19 +1230,16 @@
         let bagTarget = frequencyMap(target);
         let bagGuess  = frequencyMap(currentGuess);
 
-        if (letterHintsOn) {
-            let repeated = {};
-            for (let i=0; i < targetLetterCount; i++) {
-                let letter = target[i];
-                let nTarget = bagTarget[letter];
-                if (nTarget > 1 && bagGuess[letter] < nTarget) {
-                    repeated[letter] = nTarget;
-                }
-                //TODO why this causes the keyEl to undefined if uncommented, when coloring the keyboard keys
-                //updateSuperscripts(repeated);
+        let repeated = {};
+        for (let i=0; i < targetLetterCount; i++) {
+            let letter = target[i];
+            let nTarget = bagTarget[letter];
+            if (nTarget > 1 && bagGuess[letter] < nTarget) {
+                repeated[letter] = nTarget;
             }
         }
-    
+        // updateSuperscripts(repeated);
+
         // Iteration 1 - check for correct letters
         // TODO consideer using interger states for keyboard and chose the one 
         // with higer priority this works for now
@@ -1261,7 +1280,7 @@
             : totalResult.map((val, i) => result[i] === 'GREEN' ? 'GREEN' : val);
 
         // Animation to show guess
-        animateGuess(result, keyboardState);
+        animateGuess(result, keyboardState, repeated);
 
         console.log(result);
         console.log(keyboardState);
@@ -1269,6 +1288,8 @@
         // Hide the hint buttons immediately, no animation delay
         if (currentGuess == target || (currentGuess !== target && row === 5)) {
             hideElement(buttons);
+        } else {
+            showElement(buttons);
         }
 
         
