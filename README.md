@@ -10,9 +10,12 @@ Play it live: [https://iamnerses.github.io/Bardle/](https://iamnerses.github.io/
 - **Made From Scratch** – Code is fully written from scratch. 
 - **Official Wordle rules** – 6 guesses, green/yellow/gray feedback, keyboard coloring 
 - **Animated tile flips** – Just like the original game
-- **Pop animation** – Only on the last typed/deleted letter for a polished feel
+- **Animations** – Modern and dynamic look
+- **Hint functionality** - Reveal one letter of the target word
 - **Help modal** – Animated flipping examples that match the selected language
 - **Easy Mode toggle** – Accept any 5-letter input (great for testing or fun)
+- **Color themes** - Supports light and dark color schemes
+- **Colorblind mode** - High contrast colorscheme for colorblind
 - **Custom word mode** – Create your own word for friends to guess (perfect for sharing challenges)
 - **Multiple occurrence indicator** – Shows count on keyboard keys when a letter appears more than once
 - **Responsive design** – Works perfectly on desktop and mobile
@@ -43,7 +46,6 @@ This game is a single `index.html` file and can be hosted anywhere:
 
 - **GitHub Pages** (recommended – free and easy)
 - Any static web host
-- Even open directly in a browser (works offline!)
 
 ## Credits
 
