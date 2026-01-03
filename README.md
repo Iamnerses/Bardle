@@ -11,6 +11,7 @@ Play it live: [https://iamnerses.github.io/Bardle/](https://iamnerses.github.io/
 - **Official Wordle rules** – 6 guesses, green/yellow/gray feedback, keyboard coloring 
 - **Animated tile flips** – Just like the original game
 - **Animations** – Modern and dynamic look
+- **Hint functionality** - Reveal one letter of the target word
 - **Help modal** – Animated flipping examples that match the selected language
 - **Easy Mode toggle** – Accept any 5-letter input (great for testing or fun)
 - **Color themes** - Supports light and dark color schemes
