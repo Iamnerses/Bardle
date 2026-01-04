@@ -976,7 +976,7 @@
 
         if (k === 'ENTER') {
             if (currentGuess.length === targetLetterCount) submit();
-        } else if (k === 'DELETE') {
+        } else if (k === 'DEL') {
             currentGuess = currentGuess.slice(0, -1);
             updateRow(true);
         } else if (currentGuess.length < targetLetterCount) {
