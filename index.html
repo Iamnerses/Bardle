@@ -775,8 +775,8 @@
     let lightTheme = false;
     let highContrast = false;
 
-    let words = {}    // Allowed guess lists
-    let answers = []  // Answers array
+    let words = {};    // Allowed guess lists
+    let answers = [];  // Answers array
 
 
     lightTheme = localStorage.getItem('lightTheme') === 'true';
@@ -1177,8 +1177,6 @@
             el.dataset.col == `${hintIndex}`);
         let hintLetter = target[hintIndex];
 
-        console.log(hintTile, hintIndex, validIndices);
-        
         showHint.onclick = () => {
             hintTile.classList.remove('flipped','gray','yellow');
             hintTile.querySelector('.front').textContent = hintLetter;
@@ -1205,6 +1203,7 @@
         currentGuessFull = currentGuess;
 
         if (!easyMode) {
+            console.log(words[lang], "WORDS");
             if (!words[lang].includes(currentGuess)) {
                 // TODO transfer following to separate UI function
                 const currentRowEl = document.querySelectorAll('.row')[row];
@@ -1282,8 +1281,8 @@
         // Animation to show guess
         animateGuess(result, keyboardState, repeated);
 
-        console.log(result);
-        console.log(keyboardState);
+        //console.log(result);
+        //console.log(keyboardState);
 
         // Hide the hint buttons immediately, no animation delay
         if (currentGuess == target || (currentGuess !== target && row === 5)) {
@@ -1324,7 +1323,7 @@
     // most likely is caused by the timeout functions (line marked *** most likely)
     function newGame() {
         target = answers[Math.floor(Math.random() * answers.length)];
-        console.log("New game, word changed!!, DEBUG: Tatget -", target);
+        console.log("New game, word changed!!, DEBUG: Target -", target);
         currentGuess = '';
         hideElement(buttons);
         row = 0;
@@ -1401,8 +1400,6 @@
         localStorage.setItem('easyMode', easyMode);
         localStorage.setItem('letterHintsOn', letterHintsOn);
 
-        console.log("EASYMODE", easyMode);
-
         modal.style.display = 'none';
         if (lang !== newLang) {
             lang = newLang;
@@ -1451,15 +1448,14 @@
     document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
 
     // Start game
-    getWordList(targetLetterCount).then(response => {
-        words = response;
+    getWordList(targetLetterCount).then(() => {
         newGame();
     });
 
     async function getWordList(length) {
         const defWords = {
-            en: ['ABOUT','APPLE','BEACH','CRANE','DREAM','EAGLE','FLAME','GRAPE','HOUSE','LEMON','MANGO','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TABLE','WATER','ZEBRA'],
-            hy: ['ՀԱՅԵՐ','ԳԻՇԵՐ','ԼՈՒՍԸ','ՀԱՅՐԸ','ՏԱՆԻՔ','ՔԱՎՈՐ','ԳՆԴԱԿ','ԲԱՐԻՔ','ՏՆԱԿՍ','ՊԱՀԱԿ','ՄԿՐԱՏ','ՀԻՄԱՐ','ԲԱՆԱԿ','ԱՂՋԻԿ','ՄԱՐՏԻԿ','ԳԵՏԱԿ','ԺՊԻՏՍ','ՄԱՅԻՍ','ՎԱՐԴԱԿ','ԲԱԺԱԿ']
+            en: ['about','apple','beach','crane','dream','eagle','flame','grape','house','lemon','mango','night','ocean','piano','queen','river','smile','table','water','zebra'],
+            hy: ['հայեր','գիշեր','լուսը','հայրը','տանիք','քավոր','գնդակ','բարիք','տնակս','պահակ','մկրատ','հիմար','բանակ','աղջիկ','մարտիկ','գետակ','ժպիտս','մայիս','վարդակ','բաժակ']
         };
 
         const defCount = 5;
@@ -1469,23 +1465,25 @@
             const responseAns = await fetch(`./data/${lang}/${length}-letters-answers.txt`);
             //const responseEn = await fetch(`./data/en/${length}-letters.txt`);
 
-            if (!responseAll.ok) {
-                words[lang] = defWords[lang];
-                
-            } else {
-                const text = await responseAll.text();
-                words[lang] = text.split('\n').filter(w => w.trim() !== "");
-            }
+            if (!responseAll.ok || !responseAns.ok) throw new Error("File missing");
 
-            if (!responseAns.ok) {
-                answers = words[lang];
-            } else {
-                const text = await responseAns.text();
-                answers = text.split('\n').filter(w => w.trim() !== "");
+            const text1 = await responseAll.text();
+            const text2 = await responseAns.text();
+            words[lang] = text1.split('\n').filter(w => w.trim() !== "");
+            answers = text2.split('\n').filter(w => w.trim() !== "");
 
-            }
+            console.log("WORDS", words, answers);
 
-            if (!responseAll.ok && !responseAns.ok) {
+        } catch (err) {
+            console.log(`Error fetching words: ${err}`);
+
+            words   = defWords;
+            answers = defWords[lang];
+            easyMode = true;
+
+            console.log("WORDS", words, answers);
+
+            if (targetLetterCount !== defCount) {
                 showMessage(`${t('letterCountErr')}${targetLetterCount}`);
                 targetLetterCount = defCount;
 
@@ -1496,13 +1494,6 @@
                     }
                 });
             }
-
-            console.log("WORDS", words, answers);
-
-            return words;
-        } catch (err) {
-            console.log(`Error fetching words: ${err}`);
-            return defWords;
         }
     }
 
