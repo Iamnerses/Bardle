@@ -119,7 +119,7 @@
         #game-title {
             order: 2;      /* Moves title to the middle row */
             width: 100%;   /* Forces it to occupy its own line */
-            margin: 10px 0;
+            line-height: 1;
         }
 
         .header-group.left {
@@ -1010,6 +1010,8 @@
                 tile.classList.add(colorClass);
                 tile.querySelector('.back').textContent = letter;
 
+                // Add event Listener for the letterHintOn and make it always 
+                // to add the sup, but show when the option is on
                 if (letterHintsOn) {
                     if (repeated[letter]) {
                         let sup = document.createElement('sup');
@@ -1049,13 +1051,6 @@
 
             }
         }
-    }
-
-    function updateSuperscripts(counts) {
-        Object.keys(counts).forEach(l => {
-            const sup = document.getElementById(`sup-${l}`);
-            if (sup) sup.textContent = counts[l];
-        });
     }
 
     function buildLengthSelector() {
@@ -1170,12 +1165,15 @@
 
         const validIndices = totalResult.map((val, index) => 
             val !== 'GREEN' ? index : null).filter(val => val !== null);
+
         let randomIndex = Math.floor(Math.random() * validIndices.length); 
         let hintIndex = validIndices[randomIndex];
 
         let hintTile = Array.from(r.children).find(el => 
             el.dataset.col == `${hintIndex}`);
         let hintLetter = target[hintIndex];
+
+        console.log("VALID", validIndices, hintIndex, hintLetter);
 
         showHint.onclick = () => {
             hintTile.classList.remove('flipped','gray','yellow');
@@ -1187,6 +1185,7 @@
                 hintTile.querySelector('.back').textContent = hintLetter;
             }, 150);
         };
+
         hintModal.style.display ='flex';
     }
 
@@ -1200,10 +1199,8 @@
     function submit() {
         currentGuess = currentGuess.toLowerCase();
         target = target.toLowerCase();
-        currentGuessFull = currentGuess;
 
         if (!easyMode) {
-            console.log(words[lang], "WORDS");
             if (!words[lang].includes(currentGuess)) {
                 // TODO transfer following to separate UI function
                 const currentRowEl = document.querySelectorAll('.row')[row];
@@ -1220,6 +1217,8 @@
                 return;
             }
         }
+
+        currentGuessFull = currentGuess;
         
         result = [];
         for (let i = 0; i < targetLetterCount; i++) {
@@ -1278,6 +1277,9 @@
             ? [...result] 
             : totalResult.map((val, i) => result[i] === 'GREEN' ? 'GREEN' : val);
 
+        console.log("RESULT", result);
+        console.log("TOTAL", totalResult);
+
         // Animation to show guess
         animateGuess(result, keyboardState, repeated);
 
@@ -1329,6 +1331,7 @@
         row = 0;
         gameOver = false;
         counts = {};
+        totalResult = [];
         keyboardState={};
         updateTexts();
         buildBoard();
