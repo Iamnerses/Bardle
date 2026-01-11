@@ -155,6 +155,11 @@
         transition: all 0.5s ease;
     }
 
+    header button:hover path.sa{
+        stroke:var(--greenbtn);
+        transition: all 0.5s ease;
+    }
+
     h1 {
         margin: 0;
         font-size: 2.8em;
@@ -170,7 +175,7 @@
         cursor: pointer;
     }
 
-    button:hover { opacity: 0.9; }
+    button:hover { opacity: 0.7; }
 
     #board {
         display: grid;
@@ -296,6 +301,7 @@
         font-weight: bold;
         cursor: pointer;
         position: relative;
+        max-width: 40px;
         transition: background 0.6s, color 0.6s;
     }
     
@@ -318,7 +324,10 @@
         background: var(--btnHover); 
         color: var(--greenbtn)
     }
-    .key.large { flex: 1.5; }
+    .key.large { 
+        flex: 1.5; 
+        max-width: 60px;
+    }
     .key sup {
         position: absolute;
         top: 2px;
@@ -338,11 +347,12 @@
         z-index: 100;
     }
     .modal-content {
+        position: relative;
         background: #1e1e1e;
         padding: 30px;
         border-radius: 12px;
         width: 90%;
-        max-width: 400px;
+        max-width: fit-content;
         text-align: center;
         border: 0.5px solid #444444; 
     }
@@ -352,6 +362,45 @@
         margin: 15px 0;
         font-size: 1.1em;
     }
+
+    .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        font-size: 2.2em;
+        color: var(--text);
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        transform-origin: center center;
+        border-radius: 50%;
+        z-index: 10;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .modal-close::before {
+        content: "×";
+    }
+
+    .modal-close:hover {
+        color: var(--red); 
+        transform: rotate(-90deg);
+    }
+
+
+    .modal-close:focus {
+        outline: none;
+        color: var(--green);
+    }
+
     .close-btn {
         background: var(--red);
     }
@@ -520,6 +569,118 @@
         font-size: 0.5em;
     }
 
+    /* ===================== STATISTICS ================== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #538d4e; 
+    }
+
+    .stat-label {
+        font-size: 0.9em;
+        color: #aaa;
+    }
+
+    .distribution {
+        margin: 20px 0;
+    }
+
+    .dist-row {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+    }
+
+    .dist-row span {
+        width: fit-content;
+        text-align: right;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    .dist-bar {
+        flex: 1;
+        background: #333;
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .dist-bar > div {
+        background: #538d4e;
+        height: 100%;
+        transition: width 0.5s ease;
+    }
+
+    .dist-row span:last-child {
+        margin-left: 10px;
+        width: fit-content;
+        text-align: left;
+    }
+
+    @media (max-width: 500px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dist-row span:last-child {
+            width: 40px;
+            font-size: 0.9em;
+        }
+
+    /* Light theme adjustments */
+    body.light .stat-value {
+        color: #79b851; /* Light green */
+    }
+
+    body.light .dist-bar {
+        background: #ddd;
+    }
+
+    body.light .dist-bar > div {
+        background: #79b851;
+    }
+
+    body.light .stat-label {
+        color: #666;
+    }
+
+    /* High contrast */
+    body.high-contrast .stat-value {
+        color: #f55a00;
+    }
+
+    body.high-contrast .dist-bar > div {
+        background: #f55a00;
+    }
+
+    #reset-stats {
+        background: #c93b3b;
+        color: white;
+    }
+
+    #custom-word-input:focus {
+        outline: none;
+        border-color: var(--green);
+        box-shadow: 0 0 0 3px rgba(83,141,78,0.3);
+    }
+
+    #custom-word-error {
+        min-height: 24px;
+        font-size: 0.95em;
+    }
+
 </style>
 </head>
 <body>
@@ -527,23 +688,28 @@
     <header>
         <div class="header-group left">
             <button id="help-btn" class="icon-btn">
-                <svg viewBox="0 0 24 24" fill="gray"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                <svg viewBox="0 0 24 24" fill="gray"><path  d="M11.95 18q.525 0 .888-.363t.362-.887t-.362-.888t-.888-.362t-.887.363t-.363.887t.363.888t.887.362m-.9-3.85h1.85q0-.825.188-1.3t1.062-1.3q.65-.65 1.025-1.238T15.55 8.9q0-1.4-1.025-2.15T12.1 6q-1.425 0-2.312.75T8.55 8.55l1.65.65q.125-.45.563-.975T12.1 7.7q.8 0 1.2.438t.4.962q0 .5-.3.938t-.75.812q-1.1.975-1.35 1.475t-.25 1.825M12 22q-2.075 0-3.9-.787t-3.175-2.138T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8"/></svg>
             </button>
             <button id="settings-btn" class="icon-btn">
                 <svg viewBox="0 0 24 24" fill="gray"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.5-.47h-3.84a.49.49 0 0 0-.5.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.32.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.5.41h3.84c.26 0 .45-.17.5-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.1.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </button>
         </div>
+        <!-- Add this SVG button in header, after restart-btn -->
 
         <h1 id="game-title" data-i18n="title">Wordle</h1>
 
         <div class="header-group right">
             <button id="custom-word-btn" class="icon-btn" title="Create Custom Word">
                 <svg viewBox="0 0 24 24" fill="gray">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 16H5V5h14z"/>
+
+                    <path class="sa" d="M12 7v10M7 12h10" 
+                          fill="none" stroke="gray" stroke-width="2" stroke-linecap="round"/>
                 </svg>
             </button>
-            <button id="restart-btn" class="icon-btn">
-                <svg viewBox="0 0 24 24" fill="gray"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <button id="stats-btn" class="icon-btn" aria-label="Statistics">
+                <svg viewBox="0 0 24 24" fill="gray"><path  d="M16 20v-7h4v7zm-6 0V4h4v16zm-6 0V9h4v11z"/>
+                </svg>
             </button>
         </div>
     </header>
@@ -574,6 +740,8 @@
     </div>
 </div>
 
+
+
 <div class="modal" id="hint-modal">
     <div class="modal-content">
         <h2 data-i18n="hintTitle" style="margin-top:0; color:var(--text)"></h2>
@@ -591,6 +759,7 @@
 
 <div class="modal" id="help-modal">
     <div class="modal-content">
+        <button class="modal-close" id="close-help" aria-label="Close"></button>
         <h2 data-i18n="howToPlay" style="margin-top:0px">How to Play</h2>
         <p data-i18n="guessTheWord"></p>
         <p data-i18n="validWord"></p>
@@ -608,13 +777,13 @@
         <p style="text-align:center; margin-top:30px;"><strong data-i18n="newWord"></strong></p>
 
         <div style="text-align:center; margin-top:30px;">
-            <button id="close-help" data-i18n="close">Close</button>
         </div>
     </div>
 </div>
 
 <div class="modal" id="settings-modal">
     <div class="modal-content">
+        <button class="modal-close" id="close-settings" aria-label="Close"></button>
         <h2 data-i18n="settings" style="margin-top:0px;">Settings</h2>
         <div style="display:flex; justify-content: space-between;align-items: center;">
         <p data-i18n="chooseLanguage">Choose language:</p>
@@ -665,7 +834,96 @@
 
         <div style="margin-top:20px">
             <button class="apply-btn" id="apply-settings" data-i18n="apply">Apply</button>
-            <button class="close-btn" id="cancel-settings" data-i18n="cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add this stats modal after settings-modal -->
+<div class="modal" id="stats-modal">
+    <div class="modal-content">
+        <button class="modal-close" id="close-stats" aria-label="Close"></button>
+        <h2 data-i18n="statistics">Statistics</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="games-played">0</div>
+                <div class="stat-label" data-i18n="gamesPlayed">Games Played</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="games-won">0</div>
+                <div class="stat-label" data-i18n="gamesWon">Games Won</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="win-percentage">0%</div>
+                <div class="stat-label" data-i18n="winPercentage">Win Percentage</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="best-guess">N/A</div>
+                <div class="stat-label" data-i18n="bestGuess">Best Guess</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="current-streak">0</div>
+                <div class="stat-label" data-i18n="currentStreak">Current Streak</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="max-streak">0</div>
+                <div class="stat-label" data-i18n="maxStreak">Max Streak</div>
+            </div>
+        </div>
+
+        
+        <h3 data-i18n="guessDistribution">Guess Distribution</h3>
+        <div class="distribution">
+            <div class="dist-row">
+                <span>1</span>
+                <div class="dist-bar"><div id="dist-1-bar" style="width: 0%;"></div></div>
+                <span id="dist-1-count">0</span>
+            </div>
+            <div class="dist-row">
+                <span>2</span>
+                <div class="dist-bar"><div id="dist-2-bar" style="width: 0%;"></div></div>
+                <span id="dist-2-count">0</span>
+            </div>
+            <div class="dist-row">
+                <span>3</span>
+                <div class="dist-bar"><div id="dist-3-bar" style="width: 0%;"></div></div>
+                <span id="dist-3-count">0</span>
+            </div>
+            <div class="dist-row">
+                <span>4</span>
+                <div class="dist-bar"><div id="dist-4-bar" style="width: 0%;"></div></div>
+                <span id="dist-4-count">0</span>
+            </div>
+            <div class="dist-row">
+                <span>5</span>
+                <div class="dist-bar"><div id="dist-5-bar" style="width: 0%;"></div></div>
+                <span id="dist-5-count">0</span>
+            </div>
+            <div class="dist-row">
+                <span>6</span>
+                <div class="dist-bar"><div id="dist-6-bar" style="width: 0%;"></div></div>
+                <span id="dist-6-count">0</span>
+            </div>
+        </div>
+        
+        <button id="reset-stats" style="margin-top: 30px; background: #c93b3b;">Reset Statistics</button>
+        
+        <div style="text-align:center; margin-top:30px;">
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="custom-word-modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-top: 0px;" data-i18n="customWordTitle">Custom Word</h2>
+        <p data-i18n="customWordDesc"></p>
+        
+        <input type="text" id="custom-word-input" maxlength="10" placeholder="your word" style="width:80%; padding:12px; font-size:1em; text-transform:lowercase; text-align:center; margin:15px 0; border-radius:6px; border:2px solid #444; background:#222; color:#fff;">
+        <div id="custom-word-error" style="color:#ff6b6b; min-height:24px; margin-bottom:10px;"></div>
+        
+        <div style="display:flex; gap:15px; justify-content:center;">
+            <button id="custom-word-cancel" class="close-btn" data-i18n="cancel"></button>
+            <button id="custom-word-confirm" data-i18n="apply" style="background:var(--green);"></button>
         </div>
     </div>
 </div>
@@ -720,7 +978,23 @@
             getHint: "Get Hint",
             hintTitle: "Hint",
             showHint: "Show Hint",
-            lightmode: "Enable light mode"
+            newGame: "New Game",
+            lightmode: "Enable light mode",
+            statistics: "Statistics",
+            gamesPlayed: "Games Played",
+            gamesWon: "Games Won",
+            winPercentage: "Win Percentage",
+            bestGuess: "Best Guess (fewest tries)",
+            guessDistribution: "Guess Distribution",
+            resetConfirm: "Reset all statistics? This cannot be undone.",
+            currentStreak: "Current Streak",
+            maxStreak: "Max Streak",
+            customWordTitle: "Custom Word",
+            customWordDesc: "Enter a word (4–10 letters) for others to guess:",
+            customWordSet: "Custom word set! Share this game.",
+            enterWordFirst: "Please enter a word!",
+            lengthError: "Must be 4–10 letters!",
+            mixedOrInvalid: "Word must be fully English (A-Z) or fully Armenian (Ա-Ֆ)!"
         },
         hy: {
             title: "Բառդլ",
@@ -754,7 +1028,23 @@
             getHint: "Հուշում",
             hintTitle: "Հուշում",
             showHint: "Ցուցադրել",
-            lightmode: "Լուսավոր գունային եղանակ"
+            newGame: "Նոր խաղ",
+            lightmode: "Լուսավոր գունային եղանակ",
+            statistics: "Վիճակագրություն",
+            gamesPlayed: "Խաղացած խաղեր",
+            gamesWon: "Հաղթած խաղեր",
+            winPercentage: "Հաղթանակի տոկոս",
+            bestGuess: "Ամենաքիչ փորձեր",
+            guessDistribution: "Գուշակությունների բաշխում ըստ փորձերի քանակի",
+            resetConfirm: "Զրոյացնել վիճակագրությունը? Այն չի կարող հետ բերվել:",
+            currentStreak: "Ընթացիկ շարք",
+            maxStreak: "Առավելագույն շարք",
+            customWordTitle: "Պատվերով բառ",
+            customWordDesc: "Մուտքագրեք բառ (4–10 տառ), որ ուրիշները գուշակեն",
+            customWordSet: "Պատվերով բառը սահմանվեց! Կիսվեք խաղով։",
+            enterWordFirst: "Խնդրում ենք մուտքագրել բառ!",
+            lengthError: "Պետք է լինի 4–10 տառ!",
+            mixedOrInvalid: "Բառը պետք է լինի կամ ամբողջովին անգլերեն (A-Z), կամ ամբողջովին հայերեն (Ա-Ֆ)!"
         }
     };
 
@@ -771,12 +1061,22 @@
     let letterHintsOn = false;
     let isAnimating = false;
     let keyboardState = {};
+    let keyboardDisabled = false;
 
     let lightTheme = false;
     let highContrast = false;
 
     let words = {};    // Allowed guess lists
     let answers = [];  // Answers array
+
+    let stats = JSON.parse(localStorage.getItem('stats')) || {
+        played: 0,
+        won: 0,
+        bestGuess: null,
+        currentStreak: 0,
+        maxStreak: 0,
+        distribution: [0, 0, 0, 0, 0, 0]
+    };
 
 
     lightTheme = localStorage.getItem('lightTheme') === 'true';
@@ -972,7 +1272,7 @@
     }
 
     function handleKey(k) {
-        if (gameOver || isAnimating) return;
+        if (gameOver || isAnimating || keyboardDisabled) return;
 
         if (k === 'ENTER') {
             if (currentGuess.length === targetLetterCount) submit();
@@ -1073,6 +1373,23 @@
             container.appendChild(square);
         }
     }
+
+    function updateStatsDisplay() {
+        document.getElementById('games-played').textContent = stats.played;
+        document.getElementById('games-won').textContent = stats.won;
+        document.getElementById('win-percentage').textContent = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) + '%' : '0%';
+        console.log(stats.currentStreak, stats.played);
+        document.getElementById('current-streak').textContent = stats.currentStreak;
+        document.getElementById('max-streak').textContent = stats.maxStreak;
+        if (stats.bestGuess === null && stats.bestGuess !== Infinity) stats.bestGuess = 'N/A';
+        document.getElementById('best-guess').textContent = stats.bestGuess;
+
+        const maxWins = Math.max(...stats.distribution, 1);
+        stats.distribution.forEach((count, i) => {
+            document.getElementById(`dist-${i+1}-count`).textContent = count;
+            document.getElementById(`dist-${i+1}-bar`).style.width = maxWins > 0 ? (count / maxWins * 100) + '%' : '0%';
+        });
+    }
     
     // =============== Definitely not neccessary UI helpers ================
 
@@ -1091,6 +1408,32 @@
                 el.classList.remove('is-visible');
             }, { once: true });
 
+        }
+    }
+
+    let buttonDefHtml;
+
+    function handleNewBtn() {
+        updateButtons(false);
+        buttons.classList.remove('is-active');
+        buttons.classList.remove('is-visible');
+        newGame();
+    }
+
+    function updateButtons(isOver) {
+        if (isOver) {
+            buttonDefHtml = buttons.innerHTML;
+            buttons.innerHTML = `
+<div>
+   <button class="apply-btn" id="new-game" data-i18n="newGame" onClick="handleNewBtn()"></button>
+</div>
+                `;
+            updateTexts();
+            buttons.classList.remove('is-active');
+            buttons.classList.remove('is-visible');
+            showElement(buttons);
+        } else { 
+            buttons.innerHTML = buttonDefHtml; 
         }
     }
 
@@ -1116,14 +1459,20 @@
     // TODO gameOver modal should be shown 
     function handleGameOver(win) {
         gameOver = true;
-        hideElement(buttons);
+        updateButtons(true);
         if (win) {
             showMessage(t('brilliant'))
-
+            stats.won++;
+            stats.currentStreak++;
+            stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
+            stats.distribution[row]++;
+            stats.bestGuess = `#${Math.min(stats.bestGuess, row + 1)}`;
         } else {
+            stats.currentStreak = 0;
             showMessage(`${t('gameOver')} ${target}`)
         }
-        //buttons.style.display = 'none';
+        stats.played++;
+        localStorage.setItem('stats', JSON.stringify(stats));
     }
 
     // TODO used for answer coloring (shouldnt be global) 
@@ -1288,7 +1637,7 @@
 
         // Hide the hint buttons immediately, no animation delay
         if (currentGuess == target || (currentGuess !== target && row === 5)) {
-            hideElement(buttons);
+            updateButtons(true);
         } else {
             showElement(buttons);
         }
@@ -1327,7 +1676,6 @@
         target = answers[Math.floor(Math.random() * answers.length)];
         console.log("New game, word changed!!, DEBUG: Target -", target);
         currentGuess = '';
-        hideElement(buttons);
         row = 0;
         gameOver = false;
         counts = {};
@@ -1337,6 +1685,7 @@
         buildBoard();
         buildKeyboard();
         updateRow(); 
+
     }
 
     // Physical keyboard
@@ -1412,7 +1761,7 @@
 
     }
 
-    document.getElementById('cancel-settings').onclick = () => {
+    document.getElementById('close-settings').onclick = () => {
         modal.style.display = 'none';
     };
 
@@ -1420,32 +1769,125 @@
         if (e.target === modal) modal.style.display = 'none';
     };
 
-    document.getElementById('custom-word-btn').onclick = () => {
-        const custom = prompt(t('enterCustomWord') || 'Enter a 4 to 10 letter word for others to guess:');
-        if (custom && custom.length < 11 && custom.length > 3 && /^[A-ZԱ-Ֆ]+$/i.test(custom)) {
+    // Statistics modal, and handlers
+    const statsModal = document.getElementById('stats-modal');
 
-            targetLetterCount = custom.length;
-            getWordList(targetLetterCount).then(response => {
-                target = custom.toUpperCase();
-                row = 0;
-                currentGuess = '';
-                gameOver = false;
-                counts = {};
-                keyboardState={};
-                buildBoard();
-                updateRow();
-                buildKeyboard();
-                showMessage(t('customWordSet') || 'Custom word set! Share this game.');
-            });
+    document.getElementById('stats-btn').onclick = () => {
+        updateStatsDisplay();
+        statsModal.style.display = 'flex';
+    };
 
-            // Later: you can add location.hash = btoa(target) for sharing
-        } else if (custom) {
-            showMessage(t('invalidWord') || 'Must be exactly 5 letters!');
+    document.getElementById('close-stats').onclick = () => {
+        statsModal.style.display = 'none';
+    };
+
+    statsModal.onclick = (e) => {
+        if (e.target === statsModal) statsModal.style.display = 'none';
+    };
+
+    // Reset stats with confirmation
+    document.getElementById('reset-stats').onclick = () => {
+        if (confirm(t('resetConfirm') || 
+            'Reset all statistics? This cannot be undone.')) {
+            stats = { played: 0, won: 0, bestGuess: 'N/A', currentStreak: 0,     
+                maxStreak: 0,
+                distribution: [0,0,0,0,0,0] };
+            localStorage.setItem('stats', JSON.stringify(stats));
+            updateStatsDisplay();
         }
     };
 
-    // Restart
-    document.getElementById('restart-btn').onclick = newGame;
+    document.getElementById('custom-word-btn').onclick = () => {
+        const modal = document.getElementById('custom-word-modal');
+        const input = document.getElementById('custom-word-input');
+        const error = document.getElementById('custom-word-error');
+
+        keyboardDisabled = true;
+
+        input.value = '';
+        error.textContent = '';
+
+        modal.style.display = 'flex';
+        input.focus();
+
+        const confirmBtn = document.getElementById('custom-word-confirm');
+        const cancelBtn = document.getElementById('custom-word-cancel');
+
+        const handleConfirm = () => {
+            let custom = input.value.trim().toUpperCase();
+
+            if (!custom) {
+                error.textContent = t('enterWordFirst') || 'Please enter a word!';
+                return;
+            }
+
+            if (custom.length < 4 || custom.length > 10) {
+                error.textContent = t('lengthError') || 'Must be 4–10 letters!';
+                return;
+            }
+
+            const isEnglish = /^[A-Z]+$/.test(custom);
+            const isArmenian = /^[Ա-Ֆ]+$/.test(custom);
+
+            if (!isEnglish && !isArmenian) {
+                error.textContent = t('mixedOrInvalid') || 'Word must be fully English (A-Z) or fully Armenian (Ա-Ֆ)!';
+                return;
+            }
+
+            const newLang = isArmenian ? 'hy' : 'en';
+
+            custom = input.value.trim().toLowerCase();
+            if (newLang !== lang) {
+                lang = newLang;
+                localStorage.setItem('lang', lang);
+                getWordList(custom.length).then(() => {
+                    finalizeCustomWord(custom);
+                });
+            } else {
+                finalizeCustomWord(custom);
+            }
+        };
+
+        function finalizeCustomWord(custom) {
+            updateButtons(false);
+            buttons.classList.remove('is-active');
+            buttons.classList.remove('is-visible');
+
+            targetLetterCount = custom.length;
+            target = custom;
+            console.log(words[lang], lang, custom)
+            if (!words[lang].includes(custom)) {
+                console.log("NOT INCLUDES");
+                easyMode = true;
+            }
+            row = 0;
+            currentGuess = '';
+            gameOver = false;
+            counts = {};
+            keyboardState = {};
+            buildBoard();
+            updateRow();
+            updateTexts();
+            buildKeyboard();
+            showMessage(t('customWordSet') || 'Custom word set! Share this game.');
+            keyboardDisabled = false;
+            modal.style.display = 'none';
+        }
+
+        confirmBtn.onclick = handleConfirm;
+
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') handleConfirm();
+        });
+
+        cancelBtn.onclick = () => modal.style.display = 'none';
+        modal.onclick = e => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                keyboardDisabled = false;
+            }
+        };
+    };
 
     // Remove focus from buttons
     document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
