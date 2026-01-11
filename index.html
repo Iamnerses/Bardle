@@ -1434,7 +1434,6 @@
             showElement(buttons);
         } else { 
             if (buttons.innerHTML !== buttonDefHtml && buttonDefHtml) {
-                console.log("Հավասար չէ");
                 buttons.innerHTML = buttonDefHtml; 
             }
         }
@@ -1679,7 +1678,7 @@
     // most likely is caused by the timeout functions (line marked *** most likely)
     function newGame() {
         target = answers[Math.floor(Math.random() * answers.length)];
-        console.log("New game, word changed!!, DEBUG: Target -", target);
+        //console.log("New game, word changed!!, DEBUG: Target -", target);
         currentGuess = '';
         row = 0;
         gameOver = false;
@@ -1859,7 +1858,7 @@
 
             targetLetterCount = custom.length;
             target = custom;
-            console.log(words[lang], lang, custom)
+            //console.log(words[lang], lang, custom)
             if (!words[lang].includes(custom)) {
                 console.log("NOT INCLUDES");
                 easyMode = true;
