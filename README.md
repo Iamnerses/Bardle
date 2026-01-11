@@ -1,4 +1,4 @@
-# Bardle - Bilingial wordle, English & Հայերեն
+# Bardle - Bilingual wordle, English & Հայերեն
 
 A beautiful, fully featured Wordle clone that supports **English** and **Armenian (Հայերեն)** languages.
 
