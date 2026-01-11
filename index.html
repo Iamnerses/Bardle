@@ -352,6 +352,7 @@
         padding: 30px;
         border-radius: 12px;
         width: 90%;
+        min-width:300px;
         max-width: fit-content;
         text-align: center;
         border: 0.5px solid #444444; 
@@ -589,7 +590,7 @@
 
     .stat-label {
         font-size: 0.9em;
-        color: #aaa;
+        color: var(--text);
     }
 
     .distribution {
@@ -611,7 +612,7 @@
 
     .dist-bar {
         flex: 1;
-        background: #333;
+        background: var(--tile-border);
         height: 20px;
         border-radius: 10px;
         overflow: hidden;
@@ -914,7 +915,7 @@
 </div>
 
 <div class="modal" id="custom-word-modal">
-    <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-content">
         <h2 style="margin-top: 0px;" data-i18n="customWordTitle">Custom Word</h2>
         <p data-i18n="customWordDesc"></p>
         
@@ -1378,7 +1379,6 @@
         document.getElementById('games-played').textContent = stats.played;
         document.getElementById('games-won').textContent = stats.won;
         document.getElementById('win-percentage').textContent = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) + '%' : '0%';
-        console.log(stats.currentStreak, stats.played);
         document.getElementById('current-streak').textContent = stats.currentStreak;
         document.getElementById('max-streak').textContent = stats.maxStreak;
         if (stats.bestGuess === null && stats.bestGuess !== Infinity) stats.bestGuess = 'N/A';
@@ -1433,7 +1433,10 @@
             buttons.classList.remove('is-visible');
             showElement(buttons);
         } else { 
-            buttons.innerHTML = buttonDefHtml; 
+            if (buttons.innerHTML !== buttonDefHtml && buttonDefHtml) {
+                console.log("Հավասար չէ");
+                buttons.innerHTML = buttonDefHtml; 
+            }
         }
     }
 
@@ -1466,7 +1469,9 @@
             stats.currentStreak++;
             stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
             stats.distribution[row]++;
-            stats.bestGuess = `#${Math.min(stats.bestGuess, row + 1)}`;
+            if (!(stats.bestGuess < row + 1)) {
+                stats.bestGuess = row + 1;
+            }
         } else {
             stats.currentStreak = 0;
             showMessage(`${t('gameOver')} ${target}`)
@@ -1522,7 +1527,7 @@
             el.dataset.col == `${hintIndex}`);
         let hintLetter = target[hintIndex];
 
-        console.log("VALID", validIndices, hintIndex, hintLetter);
+        //console.log("VALID", validIndices, hintIndex, hintLetter);
 
         showHint.onclick = () => {
             hintTile.classList.remove('flipped','gray','yellow');
@@ -1626,8 +1631,8 @@
             ? [...result] 
             : totalResult.map((val, i) => result[i] === 'GREEN' ? 'GREEN' : val);
 
-        console.log("RESULT", result);
-        console.log("TOTAL", totalResult);
+        //console.log("RESULT", result);
+        //console.log("TOTAL", totalResult);
 
         // Animation to show guess
         animateGuess(result, keyboardState, repeated);
@@ -1637,7 +1642,7 @@
 
         // Hide the hint buttons immediately, no animation delay
         if (currentGuess == target || (currentGuess !== target && row === 5)) {
-            updateButtons(true);
+            //updateButtons(true);
         } else {
             showElement(buttons);
         }
@@ -1685,7 +1690,7 @@
         buildBoard();
         buildKeyboard();
         updateRow(); 
-
+        updateButtons(false);
     }
 
     // Physical keyboard
@@ -1789,7 +1794,7 @@
     document.getElementById('reset-stats').onclick = () => {
         if (confirm(t('resetConfirm') || 
             'Reset all statistics? This cannot be undone.')) {
-            stats = { played: 0, won: 0, bestGuess: 'N/A', currentStreak: 0,     
+            stats = { played: 0, won: 0, bestGuess: null, currentStreak: 0,     
                 maxStreak: 0,
                 distribution: [0,0,0,0,0,0] };
             localStorage.setItem('stats', JSON.stringify(stats));
@@ -1840,15 +1845,14 @@
             if (newLang !== lang) {
                 lang = newLang;
                 localStorage.setItem('lang', lang);
-                getWordList(custom.length).then(() => {
-                    finalizeCustomWord(custom);
-                });
-            } else {
+            } 
+            getWordList(custom.length).then(() => {
                 finalizeCustomWord(custom);
-            }
+            });
         };
 
         function finalizeCustomWord(custom) {
+            easyMode = false;
             updateButtons(false);
             buttons.classList.remove('is-active');
             buttons.classList.remove('is-visible');
