@@ -14,6 +14,7 @@
         --tile-border-active: #555;
         --tile-border: #3a3a3c;
         --key-bg: #818384;
+        --lighter:#3a3a3c;
 
         --key-hover: #9a9a9d;
         --green:#538d4e ;
@@ -39,6 +40,7 @@
         --tile-border-active: #999;
         --tile-border: #d3d6da;
         --key-bg: #d3d6da;
+        --lighter:#cacaca;
 
         --key-hover: #c0c0c0;
         --green:#79b851;
@@ -639,6 +641,7 @@
             width: 40px;
             font-size: 0.9em;
         }
+    }
 
     /* Light theme adjustments */
     body.light .stat-value {
@@ -672,9 +675,8 @@
     }
 
     #custom-word-input:focus {
-        outline: none;
-        border-color: var(--green);
-        box-shadow: 0 0 0 3px rgba(83,141,78,0.3);
+        outline: none !important;
+        border-color: var(--tile-border-) !important;;
     }
 
     #custom-word-error {
@@ -919,7 +921,7 @@
         <h2 style="margin-top: 0px;" data-i18n="customWordTitle">Custom Word</h2>
         <p data-i18n="customWordDesc"></p>
         
-        <input type="text" id="custom-word-input" maxlength="10" placeholder="your word" style="width:80%; padding:12px; font-size:1em; text-transform:lowercase; text-align:center; margin:15px 0; border-radius:6px; border:2px solid #444; background:#222; color:#fff;">
+        <input type="text" id="custom-word-input" maxlength="10" placeholder="your word" style="width:80%; padding:12px; font-size:1em; text-transform:lowercase; text-align:center; margin:15px 0; border-radius:6px; border:2px solid var(--tile-border); background:var(--lighter); color:var(--text);">
         <div id="custom-word-error" style="color:#ff6b6b; min-height:24px; margin-bottom:10px;"></div>
         
         <div style="display:flex; gap:15px; justify-content:center;">
