@@ -835,6 +835,12 @@
             </label>
         </div>
 
+        <div class="settingsItem" style=" justify-content: center;">
+            <button id="reset-custom-words" style="background: #c93b3b; color: white;" data-i18n="resetCustom">
+                Reset Custom Words
+            </button>
+        </div>
+
         <div style="margin-top:20px">
             <button class="apply-btn" id="apply-settings" data-i18n="apply">Apply</button>
         </div>
@@ -997,7 +1003,9 @@
             customWordSet: "Custom word set! Share this game.",
             enterWordFirst: "Please enter a word!",
             lengthError: "Must be 4–10 letters!",
-            mixedOrInvalid: "Word must be fully English (A-Z) or fully Armenian (Ա-Ֆ)!"
+            mixedOrInvalid: "Word must be fully English (A-Z) or fully Armenian (Ա-Ֆ)!",
+            resetCustomWordsConfirm: "Reset all collected custom words?",
+            resetCustom: "Reset added words collection"
         },
         hy: {
             title: "Բառդլ",
@@ -1047,7 +1055,9 @@
             customWordSet: "Պատվերով բառը սահմանվեց! Կիսվեք խաղով։",
             enterWordFirst: "Խնդրում ենք մուտքագրել բառ!",
             lengthError: "Պետք է լինի 4–10 տառ!",
-            mixedOrInvalid: "Բառը պետք է լինի կամ ամբողջովին անգլերեն (A-Z), կամ ամբողջովին հայերեն (Ա-Ֆ)!"
+            resetCustom: "Զրոյացնել նոր ավելացված բառացանկը",
+            mixedOrInvalid: "Բառը պետք է լինի կամ ամբողջովին անգլերեն (A-Z), կամ ամբողջովին հայերեն (Ա-Ֆ)!",
+            resetCustomWordsConfirm: "Զրայացնե՞լ նոր ավաացված բառերի հավաքածուն ամբողջությամբ"
         }
     };
 
@@ -1670,6 +1680,20 @@
         }, 5 * 450);
     }
 
+    function loadCustomCollections() {
+        const saved = localStorage.getItem('customWordCollections');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                customWordCollections.en = parsed.en || {};
+                customWordCollections.hy = parsed.hy || {};
+                console.log("Loaded custom collections:", customWordCollections);
+            } catch (e) {
+                console.error("Failed to load custom collections:", e);
+            }
+        }
+    }
+
 
     function handleGameOverClick() {
         //TODO open custom modal to show additioal info about the game
@@ -1694,7 +1718,56 @@
         updateButtons(false);
     }
 
+    async function getWordList(length) {
+        const defWords = {
+            en: ['about','apple','beach','crane','dream','eagle','flame','grape','house','lemon','mango','night','ocean','piano','queen','river','smile','table','water','zebra'],
+            hy: ['հայեր','գիշեր','լուսը','հայրը','տանիք','քավոր','գնդակ','բարիք','տնակս','պահակ','մկրատ','հիմար','բանակ','աղջիկ','մարտիկ','գետակ','ժպիտս','մայիս','վարդակ','բաժակ']
+        };
+
+        const defCount = 5;
+
+        try {
+            const responseAll = await fetch(`./data/${lang}/${length}-letters.txt`);
+            const responseAns = await fetch(`./data/${lang}/${length}-letters-answers.txt`);
+            //const responseEn = await fetch(`./data/en/${length}-letters.txt`);
+
+            if (!responseAll.ok || !responseAns.ok) throw new Error("File missing");
+
+            const text1 = await responseAll.text();
+            const text2 = await responseAns.text();
+            words[lang] = text1.split('\n').filter(w => w.trim() !== "");
+            answers = text2.split('\n').filter(w => w.trim() !== "");
+
+            console.log("WORDS", words, answers);
+
+        } catch (err) {
+            console.log(`Error fetching words: ${err}`);
+
+            words   = defWords;
+            answers = defWords[lang];
+            easyMode = true;
+
+            console.log("WORDS", words, answers);
+
+            if (targetLetterCount !== defCount) {
+                showMessage(`${t('letterCountErr')}${targetLetterCount}`);
+                targetLetterCount = defCount;
+
+                document.querySelectorAll('.length-square').forEach((s) => { 
+                    s.classList.remove('selected');
+                    if (s.innerHTML === `${targetLetterCount}`) {
+                        s.classList.add('selected');
+                    }
+                });
+            }
+        }
+    }
+
     // Physical keyboard
+    let customWordCollections = {
+        en: {},  
+        hy: {}
+    };
     document.addEventListener('keydown', e => {
         if (gameOver) return;
         const k = e.key.toUpperCase();
@@ -1704,7 +1777,76 @@
             const allowed = layouts[lang].flat().filter(x => x.length === 1);
             if (allowed.includes(k)) handleKey(k);
         }
+
+        if (e.shiftKey) {
+            // Shift + N → Add current word to collection
+            if (e.shiftKey && e.code === 'KeyN') {
+                e.preventDefault();
+                if (currentGuess.length === targetLetterCount && !gameOver && !isAnimating) {
+
+                    if (words[lang].includes(currentGuess.toLowerCase())) {
+                        showMessage(`Word ${currentGuess} is already in Bardle word list `);
+                        return;
+                    }
+
+                    if (!customWordCollections[lang]) customWordCollections[lang] = {};
+                    if (!customWordCollections[lang][targetLetterCount]) {
+                        customWordCollections[lang][targetLetterCount] = [];
+                    }
+
+                    const collection = customWordCollections[lang][targetLetterCount];
+
+                    if (!collection.includes(currentGuess)) {
+                        collection.push(currentGuess);
+                        showMessage(`"${currentGuess}" added! (${collection.length} words)`);
+
+                        // Save to localStorage immediately
+                        localStorage.setItem('customWordCollections', JSON.stringify(customWordCollections));
+                    } else {
+                        showMessage(`"${currentGuess}" already added!`);
+                    }
+                } else {
+                    showMessage("Finish typing a full word first!");
+                }
+            }
+            // Shift + S → Download collected words for current length
+            if (e.shiftKey && e.code === 'KeyS') {
+                e.preventDefault();
+
+                let filesSaved = 0;
+                let messages = [];
+
+                for (const [lengthStr, words] of Object.entries(customWordCollections[lang] || {})) {
+                    const length = parseInt(lengthStr);
+                    if (words.length === 0) continue;
+
+                    const filename = `new-${length}-letters.txt`;
+                    const content = words.join('\n') + '\n';
+
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    filesSaved++;
+                    messages.push(`${words.length} words → ${filename}`);
+                }
+
+                if (filesSaved === 0) {
+                    showMessage("No collected words to save!");
+                } else {
+                    showMessage(`Saved ${filesSaved} file(s):\n` + messages.join('\n'));
+                }
+            }
+            
+        }
     });
+
 
     document.body.addEventListener('click', handleGameOverClick);
 
@@ -1766,6 +1908,15 @@
         }
 
     }
+
+    document.getElementById('reset-custom-words').onclick = () => {
+        if (confirm(t('resetCustomWordsConfirm') || 
+            'Reset all collected custom words for all lengths and languages? This cannot be undone.')) {
+            customWordCollections = { en: {}, hy: {} };
+            localStorage.removeItem('customWordCollections');
+            showMessage("Custom word collections reset!");
+        }
+    };
 
     document.getElementById('close-settings').onclick = () => {
         modal.style.display = 'none';
@@ -1898,54 +2049,11 @@
     document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
 
     // Start game
+    loadCustomCollections();
     getWordList(targetLetterCount).then(() => {
         newGame();
     });
 
-    async function getWordList(length) {
-        const defWords = {
-            en: ['about','apple','beach','crane','dream','eagle','flame','grape','house','lemon','mango','night','ocean','piano','queen','river','smile','table','water','zebra'],
-            hy: ['հայեր','գիշեր','լուսը','հայրը','տանիք','քավոր','գնդակ','բարիք','տնակս','պահակ','մկրատ','հիմար','բանակ','աղջիկ','մարտիկ','գետակ','ժպիտս','մայիս','վարդակ','բաժակ']
-        };
-
-        const defCount = 5;
-
-        try {
-            const responseAll = await fetch(`./data/${lang}/${length}-letters.txt`);
-            const responseAns = await fetch(`./data/${lang}/${length}-letters-answers.txt`);
-            //const responseEn = await fetch(`./data/en/${length}-letters.txt`);
-
-            if (!responseAll.ok || !responseAns.ok) throw new Error("File missing");
-
-            const text1 = await responseAll.text();
-            const text2 = await responseAns.text();
-            words[lang] = text1.split('\n').filter(w => w.trim() !== "");
-            answers = text2.split('\n').filter(w => w.trim() !== "");
-
-            console.log("WORDS", words, answers);
-
-        } catch (err) {
-            console.log(`Error fetching words: ${err}`);
-
-            words   = defWords;
-            answers = defWords[lang];
-            easyMode = true;
-
-            console.log("WORDS", words, answers);
-
-            if (targetLetterCount !== defCount) {
-                showMessage(`${t('letterCountErr')}${targetLetterCount}`);
-                targetLetterCount = defCount;
-
-                document.querySelectorAll('.length-square').forEach((s) => { 
-                    s.classList.remove('selected');
-                    if (s.innerHTML === `${targetLetterCount}`) {
-                        s.classList.add('selected');
-                    }
-                });
-            }
-        }
-    }
 
 </script>
 </body>
