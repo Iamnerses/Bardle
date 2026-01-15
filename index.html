@@ -1566,8 +1566,9 @@
         target = target.toLowerCase();
 
         if (!easyMode) {
-            if (!words[lang].includes(currentGuess)) {
+            if (!words[lang].includes(currentGuess) && !customWordCollections[lang][targetLetterCount].includes(currentGuess.toUpperCase()) ) {
                 // TODO transfer following to separate UI function
+                console.log(customWordCollections[lang][targetLetterCount].includes(currentGuess.toUpperCase()), currentGuess, customWordCollections);
                 const currentRowEl = document.querySelectorAll('.row')[row];
                 currentRowEl.classList.add('shake');
 
