@@ -1432,6 +1432,7 @@
         newGame();
     }
 
+    // TODO something is wrrong with this logic
     function updateButtons(isOver) {
         if (isOver) {
             buttonDefHtml = buttons.innerHTML;
@@ -1447,6 +1448,7 @@
         } else { 
             if (buttons.innerHTML !== buttonDefHtml && buttonDefHtml) {
                 buttons.innerHTML = buttonDefHtml; 
+                updateTexts();
             }
         }
     }
@@ -1566,7 +1568,10 @@
         target = target.toLowerCase();
 
         if (!easyMode) {
-            if (!words[lang].includes(currentGuess) && !customWordCollections[lang][targetLetterCount].includes(currentGuess.toUpperCase()) ) {
+            const isAddedWord = customWordCollections[lang][targetLetterCount]
+                ?.includes(currentGuess.toUpperCase()) 
+
+            if (!words[lang].includes(currentGuess) && !isAddedWord) {
                 // TODO transfer following to separate UI function
                 console.log(customWordCollections[lang][targetLetterCount].includes(currentGuess.toUpperCase()), currentGuess, customWordCollections);
                 const currentRowEl = document.querySelectorAll('.row')[row];
