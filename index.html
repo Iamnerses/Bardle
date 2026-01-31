@@ -1573,7 +1573,7 @@
 
             if (!words[lang].includes(currentGuess) && !isAddedWord) {
                 // TODO transfer following to separate UI function
-                console.log(customWordCollections[lang][targetLetterCount].includes(currentGuess.toUpperCase()), currentGuess, customWordCollections);
+                console.log(customWordCollections[lang][targetLetterCount]?.includes(currentGuess.toUpperCase()), currentGuess, customWordCollections);
                 const currentRowEl = document.querySelectorAll('.row')[row];
                 currentRowEl.classList.add('shake');
 
